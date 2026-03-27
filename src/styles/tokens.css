@@ -1,0 +1,262 @@
+/* ============================================================
+   VTC — Design Tokens
+   Étape 1 : Fondation — variables CSS globales
+   ============================================================
+   Usage : import dans globals.css avec @import './tokens.css'
+   ============================================================ */
+
+/* ── Google Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
+
+:root {
+
+  /* ────────────────────────────────────────────
+     COULEURS — Palette principale dark navy
+     ──────────────────────────────────────────── */
+
+  /* Fonds */
+  --color-bg:              #07090f;   /* fond page principal */
+  --color-bg-elevated:     #0d1117;   /* surfaces légèrement élevées */
+  --color-bg-overlay:      #111827;   /* modals, drawers */
+
+  /* Surfaces glass (inputs, cards) */
+  --color-surface:         rgba(255, 255, 255, 0.06);
+  --color-surface-hover:   rgba(255, 255, 255, 0.10);
+  --color-surface-active:  rgba(255, 255, 255, 0.13);
+
+  /* Bordures */
+  --color-border:          rgba(255, 255, 255, 0.10);
+  --color-border-hover:    rgba(255, 255, 255, 0.18);
+  --color-border-focus:    rgba(255, 255, 255, 0.30);
+
+  /* Textes */
+  --color-text-primary:    #ffffff;
+  --color-text-secondary:  rgba(255, 255, 255, 0.55);
+  --color-text-muted:      rgba(255, 255, 255, 0.30);
+  --color-text-placeholder:rgba(255, 255, 255, 0.38);
+
+  /* Accents */
+  --color-accent:          #ffffff;          /* CTA principal (bouton blanc) */
+  --color-accent-fg:       #07090f;          /* texte sur fond accent */
+  --color-accent-dark:     #1c2132;          /* bouton secondaire */
+  --color-accent-dark-hover: #232a3e;
+
+  /* Statuts */
+  --color-success:         #22c55e;
+  --color-warning:         #f59e0b;
+  --color-error:           #ef4444;
+  --color-info:            #3b82f6;
+
+  /* ────────────────────────────────────────────
+     MAP — Gradient overlay sur la carte
+     ──────────────────────────────────────────── */
+
+  --map-overlay-top: linear-gradient(
+    to bottom,
+    rgba(7, 9, 15, 0.88) 0%,
+    rgba(7, 9, 15, 0.50) 30%,
+    rgba(7, 9, 15, 0.15) 55%,
+    rgba(7, 9, 15, 0.00) 70%
+  );
+
+  --map-overlay-bottom: linear-gradient(
+    to top,
+    rgba(7, 9, 15, 1.00) 0%,
+    rgba(7, 9, 15, 0.90) 25%,
+    rgba(7, 9, 15, 0.50) 55%,
+    rgba(7, 9, 15, 0.00) 80%
+  );
+
+  /* Simulation carte (avant intégration Mapbox) */
+  --map-placeholder: radial-gradient(
+    ellipse at 60% 50%,
+    #0f1a2e 0%,
+    #0a1020 40%,
+    #07090f 100%
+  );
+
+  /* ────────────────────────────────────────────
+     TYPOGRAPHIE
+     ──────────────────────────────────────────── */
+
+  --font-display: 'Syne', system-ui, sans-serif;   /* titres, logo, labels */
+  --font-body:    'DM Sans', system-ui, sans-serif; /* texte courant, UI */
+  --font-mono:    'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Échelle typographique */
+  --text-xs:   0.6875rem;   /* 11px */
+  --text-sm:   0.8125rem;   /* 13px */
+  --text-base: 1rem;         /* 16px */
+  --text-lg:   1.125rem;    /* 18px */
+  --text-xl:   1.25rem;     /* 20px */
+  --text-2xl:  1.5rem;      /* 24px */
+  --text-3xl:  1.875rem;    /* 30px */
+  --text-4xl:  2.25rem;     /* 36px */
+  --text-5xl:  3rem;         /* 48px */
+  --text-6xl:  3.75rem;     /* 60px */
+
+  /* Graisse */
+  --font-light:    300;
+  --font-regular:  400;
+  --font-medium:   500;
+  --font-semibold: 600;
+  --font-bold:     700;
+  --font-extrabold:800;
+
+  /* Interlignage */
+  --leading-tight:  1.15;
+  --leading-snug:   1.30;
+  --leading-normal: 1.5;
+  --leading-relaxed:1.65;
+
+  /* Espacement lettres */
+  --tracking-tight:  -0.03em;
+  --tracking-normal:  0em;
+  --tracking-wide:    0.04em;
+  --tracking-widest:  0.12em;
+
+  /* ────────────────────────────────────────────
+     ESPACEMENTS (base 4px)
+     ──────────────────────────────────────────── */
+
+  --space-1:   0.25rem;    /* 4px  */
+  --space-2:   0.5rem;     /* 8px  */
+  --space-3:   0.75rem;    /* 12px */
+  --space-4:   1rem;       /* 16px */
+  --space-5:   1.25rem;    /* 20px */
+  --space-6:   1.5rem;     /* 24px */
+  --space-8:   2rem;       /* 32px */
+  --space-10:  2.5rem;     /* 40px */
+  --space-12:  3rem;       /* 48px */
+  --space-14:  3.5rem;     /* 56px */
+  --space-16:  4rem;       /* 64px */
+  --space-20:  5rem;       /* 80px */
+  --space-24:  6rem;       /* 96px */
+
+  /* ────────────────────────────────────────────
+     ARRONDIS
+     ──────────────────────────────────────────── */
+
+  --radius-xs:   0.25rem;   /* 4px  — badges, tags */
+  --radius-sm:   0.5rem;    /* 8px  — petits éléments */
+  --radius-md:   0.875rem;  /* 14px — inputs, cards */
+  --radius-lg:   1.25rem;   /* 20px — inputs mobile (screenshot) */
+  --radius-xl:   1.75rem;   /* 28px — boutons principaux */
+  --radius-2xl:  2.5rem;    /* 40px — modals, sheets */
+  --radius-full: 9999px;
+
+  /* ────────────────────────────────────────────
+     OMBRES
+     ──────────────────────────────────────────── */
+
+  --shadow-xs:  0 1px 2px  rgba(0, 0, 0, 0.35);
+  --shadow-sm:  0 2px 8px  rgba(0, 0, 0, 0.45);
+  --shadow-md:  0 4px 20px rgba(0, 0, 0, 0.55);
+  --shadow-lg:  0 8px 40px rgba(0, 0, 0, 0.65);
+  --shadow-xl:  0 16px 64px rgba(0, 0, 0, 0.75);
+
+  /* Glow pour éléments actifs */
+  --shadow-glow-white: 0 0 0 3px rgba(255, 255, 255, 0.12);
+  --shadow-glow-accent:0 0 24px rgba(255, 255, 255, 0.08);
+
+  /* ────────────────────────────────────────────
+     GLASSMORPHISM
+     ──────────────────────────────────────────── */
+
+  --glass-bg:         rgba(255, 255, 255, 0.06);
+  --glass-bg-strong:  rgba(255, 255, 255, 0.10);
+  --glass-border:     1px solid rgba(255, 255, 255, 0.10);
+  --glass-border-focus: 1px solid rgba(255, 255, 255, 0.28);
+  --glass-blur:       blur(20px);
+  --glass-blur-heavy: blur(40px);
+  --glass-blur-light: blur(8px);
+
+  /* ────────────────────────────────────────────
+     ANIMATIONS & MOTION
+     ──────────────────────────────────────────── */
+
+  /* Easings */
+  --ease-linear:   linear;
+  --ease-in:       cubic-bezier(0.4, 0, 1, 1);
+  --ease-out:      cubic-bezier(0.0, 0, 0.2, 1);
+  --ease-in-out:   cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);  /* rebond léger */
+  --ease-smooth:   cubic-bezier(0.16, 1, 0.3, 1);       /* fluide premium */
+  --ease-sharp:    cubic-bezier(0.2, 0, 0, 1);
+
+  /* Durées */
+  --duration-instant: 80ms;
+  --duration-fast:   150ms;
+  --duration-base:   250ms;
+  --duration-slow:   400ms;
+  --duration-slower: 600ms;
+  --duration-page:   800ms;
+
+  /* ────────────────────────────────────────────
+     LAYOUT
+     ──────────────────────────────────────────── */
+
+  /* Breakpoints (référence — utiliser Tailwind pour les media queries) */
+  --bp-sm:   640px;
+  --bp-md:   768px;
+  --bp-lg:   1024px;
+  --bp-xl:   1280px;
+  --bp-2xl:  1536px;
+
+  /* Conteneurs */
+  --container-mobile:   390px;
+  --container-tablet:   768px;
+  --container-desktop:  1280px;
+  --container-wide:     1440px;
+
+  /* Chrome de l'app */
+  --header-height-mobile:  56px;
+  --header-height-desktop: 72px;
+  --bottom-bar-height:     88px;   /* safe area incluse */
+  --sidebar-width:         320px;  /* version desktop */
+
+  /* Safe areas iOS */
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left:   env(safe-area-inset-left, 0px);
+  --safe-right:  env(safe-area-inset-right, 0px);
+
+  /* ────────────────────────────────────────────
+     Z-INDEX — Hiérarchie des couches
+     ──────────────────────────────────────────── */
+
+  --z-map:        0;     /* fond carte */
+  --z-map-ui:    10;     /* contrôles carte */
+  --z-content:   20;     /* contenu principal */
+  --z-header:    30;     /* header fixe */
+  --z-overlay:   40;     /* overlays, sidebars */
+  --z-modal:     50;     /* modals */
+  --z-toast:     60;     /* notifications */
+  --z-tooltip:   70;     /* tooltips */
+}
+
+/* ────────────────────────────────────────────
+   DESKTOP OVERRIDES
+   Ajustements pour grand écran
+   ──────────────────────────────────────────── */
+@media (min-width: 1024px) {
+  :root {
+    --text-base: 1.0625rem;  /* légèrement plus grand sur desktop */
+    --header-height: var(--header-height-desktop);
+  }
+}
+
+/* ────────────────────────────────────────────
+   REDUCED MOTION
+   Respect des préférences utilisateur
+   ──────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast:   0ms;
+    --duration-base:   0ms;
+    --duration-slow:   0ms;
+    --duration-slower: 0ms;
+    --ease-spring:     linear;
+    --ease-smooth:     linear;
+  }
+}

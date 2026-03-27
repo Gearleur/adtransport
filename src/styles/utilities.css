@@ -1,0 +1,72 @@
+@layer utilities {
+
+  /* ── Surface principale des cards ── vrai glassmorphism */
+  .surface-primary {
+    background: linear-gradient(
+      135deg,
+      rgba(255,255,255,0.07) 0%,
+      rgba(255,255,255,0.03) 100%
+    );
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow:
+      var(--shadow-card),
+      0 0 0 1px rgba(0,212,255,0.04) inset;
+    backdrop-filter: blur(24px);
+  }
+
+  /* ── Surface secondaire ── */
+  .surface-secondary {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    backdrop-filter: blur(16px);
+  }
+
+  /* ── Boutons flottants / tooltips ── */
+  .surface-floating {
+    background: rgba(6,9,18,0.78);
+    border: 1px solid rgba(255,255,255,0.10);
+    backdrop-filter: blur(22px);
+    box-shadow:
+      var(--shadow-floating),
+      0 0 0 1px rgba(0,212,255,0.06) inset;
+  }
+
+  /* ── Halo accent sous un élément ── */
+  .glow-accent {
+    box-shadow: var(--shadow-glow);
+  }
+
+  /* ── Halo text cyan ── */
+  .text-glow {
+    text-shadow: 0 0 20px rgba(0,212,255,0.45), 0 0 60px rgba(0,212,255,0.18);
+  }
+
+  .hairline {
+    border-color: rgba(255,255,255,0.07);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* ── Grille fine pour la carte ── */
+  .premium-grid {
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* ── Fondu bas carte ── */
+  .map-fade-bottom {
+    mask-image: linear-gradient(to bottom, black 82%, transparent 100%);
+  }
+
+  /* ── Fond body avec les halos atmosphériques ── */
+  .hero-atmosphere {
+    background-image:
+      radial-gradient(ellipse 70% 45% at 50% 0%, rgba(0,180,255,0.18), transparent 55%),
+      radial-gradient(ellipse 40% 30% at 15% 70%, rgba(60,0,200,0.10), transparent 50%),
+      radial-gradient(ellipse 50% 35% at 85% 85%, rgba(0,100,220,0.10), transparent 50%);
+  }
+}
