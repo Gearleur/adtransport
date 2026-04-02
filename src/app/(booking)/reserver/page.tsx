@@ -6,17 +6,14 @@ import { BookingPanel }  from '@/features/booking/components/booking-panel'
 import { MapComponent }  from '@/features/locations/components/map-component'
 
 export default function ReserverPage() {
-  const [isDesktop, setIsDesktop] = useState(() =>
-    typeof window !== 'undefined'
-      ? window.matchMedia('(min-width: 1024px)').matches
-      : false
-  )
+  const [isDesktop, setIsDesktop] = useState(false)
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)')
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
+    const update = () => setIsDesktop(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
   }, [])
 
   return (
