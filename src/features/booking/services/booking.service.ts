@@ -65,6 +65,18 @@ export async function getBookingById(
   return data as Booking
 }
 
+/* ── Mettre à jour la route (distance + durée) ── */
+export async function updateBookingRoute(
+  id: string,
+  distanceKm: number,
+  durationMin: number
+): Promise<void> {
+  await supabaseClient
+    .from('bookings')
+    .update({ distance_km: distanceKm, duration_min: durationMin })
+    .eq('id', id)
+}
+
 /* ── Annuler une réservation ── */
 export async function cancelBooking(
   id: string

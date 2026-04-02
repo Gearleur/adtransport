@@ -11,8 +11,11 @@ export interface RideCardData {
   pickupCity:   string
   dropoffLabel: string
   dropoffCity:  string
-  scheduledAt:  string | null
-  price:        number | null
+  scheduledAt:    string | null
+  price:          number | null
+  passengerName:  string | null
+  distanceKm:     number | null
+  durationMin:    number | null
 }
 
 const STATUS: Record<RideStatus, { label: string; glow: string; text: string; bar: string }> = {
@@ -25,7 +28,13 @@ const STATUS: Record<RideStatus, { label: string; glow: string; text: string; ba
 }
 
 function shortAddress(full: string): string {
-  return full.split(',')[0]?.trim() ?? full
+  const parts = full.split(',').map(p => p.trim())
+  /* Nominatim place le numéro seul en premier segment
+     ex: "5, Rue Charles Faroux, Paris" → on recolle numéro + rue */
+  if (parts.length > 1 && /^\d+$/.test(parts[0])) {
+    return `${parts[0]} ${parts[1]}`
+  }
+  return parts[0] ?? full
 }
 
 export function RideCard({ ride }: { ride: RideCardData }) {
@@ -122,31 +131,52 @@ export function RideCard({ ride }: { ride: RideCardData }) {
 
           <div style={{ padding: '16px 20px 18px', position: 'relative', zIndex: 1 }}>
 
-            {/* Date + Heure */}
+            {/* Date + Durée + Heure */}
             <div style={{
-              display: 'flex', justifyContent: 'space-between',
+              display: 'grid', gridTemplateColumns: '1fr auto 1fr',
               alignItems: 'center', marginBottom: 18,
             }}>
-              {shortDate && (
+              {/* Date */}
+              <span style={{
+                fontFamily: "'DM Sans', system-ui, sans-serif",
+                fontSize: 12, fontWeight: 500,
+                color: 'rgba(255,255,255,0.40)',
+                textTransform: 'capitalize', letterSpacing: '0.01em',
+              }}>
+                {shortDate ?? 'Maintenant'}
+              </span>
+
+              {/* Durée — centre */}
+              {ride.durationMin != null && (
                 <span style={{
                   fontFamily: "'DM Sans', system-ui, sans-serif",
-                  fontSize: 12, fontWeight: 500,
-                  color: 'rgba(255,255,255,0.40)',
-                  textTransform: 'capitalize', letterSpacing: '0.01em',
+                  fontSize: 11, fontWeight: 600,
+                  color: '#ffffff',
+                  background: 'rgba(255,255,255,0.08)',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  borderRadius: 9999, padding: '3px 9px',
+                  whiteSpace: 'nowrap',
                 }}>
-                  {shortDate}
+                  {ride.durationMin >= 60
+                    ? `${Math.floor(ride.durationMin / 60)}h${String(ride.durationMin % 60).padStart(2,'0')}`
+                    : `${ride.durationMin} min`}
                 </span>
               )}
+              {ride.durationMin == null && <span />}
+
+              {/* Heure */}
               {date.timeLabel !== 'Maintenant' && (
                 <span style={{
                   fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
                   fontSize: 14, fontWeight: 800,
                   color: 'rgba(255,255,255,0.85)',
                   letterSpacing: '-0.02em',
+                  textAlign: 'right',
                 }}>
                   {date.timeLabel}
                 </span>
               )}
+              {date.timeLabel === 'Maintenant' && <span />}
             </div>
 
             {/* Trajet */}
@@ -239,7 +269,25 @@ export function RideCard({ ride }: { ride: RideCardData }) {
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             position: 'relative', zIndex: 1,
           }}>
+            {/* Passager */}
             <div>
+              <p style={{
+                fontFamily: "'DM Sans', system-ui, sans-serif",
+                fontSize: 9, fontWeight: 700, letterSpacing: '0.12em',
+                textTransform: 'uppercase', color: 'rgba(255,255,255,0.18)',
+                marginBottom: 3,
+              }}>Passager</p>
+              <p style={{
+                fontFamily: "'DM Sans', system-ui, sans-serif",
+                fontWeight: 600, fontSize: 13,
+                color: 'rgba(255,255,255,0.70)',
+              }}>
+                {ride.passengerName ?? '—'}
+              </p>
+            </div>
+
+            {/* Prix */}
+            <div style={{ textAlign: 'right' }}>
               <p style={{
                 fontFamily: "'DM Sans', system-ui, sans-serif",
                 fontSize: 9, fontWeight: 700, letterSpacing: '0.12em',
@@ -252,16 +300,8 @@ export function RideCard({ ride }: { ride: RideCardData }) {
                 color: '#ffffff',
                 textShadow: '0 1px 6px rgba(255,255,255,0.10)',
               }}>
-                {ride.price != null && ride.price > 0 ? `${ride.price} €` : 'Sur devis'}
+                {ride.price != null && ride.price >= 0 ? `${ride.price} €` : 'Sur devis'}
               </p>
-            </div>
-            <div style={{ display: 'flex', gap: 2.5, alignItems: 'center' }}>
-              {[12, 18, 22, 18, 12].map((h, i) => (
-                <div key={i} style={{
-                  width: 2, height: h, borderRadius: 2,
-                  background: `rgba(255,255,255,${0.05 + i * 0.025})`,
-                }} />
-              ))}
             </div>
           </div>
         </div>

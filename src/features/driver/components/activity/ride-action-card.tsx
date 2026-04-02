@@ -7,6 +7,7 @@
 
 import { useRef, useState } from 'react'
 import { MapPin, User, Phone, Clock, ChevronRight } from 'lucide-react'
+import { RouteBadge } from '@/components/ui/route-badge'
 import type { DriverRide } from '../../services/driver.service'
 
 interface RideActionCardProps {
@@ -144,8 +145,8 @@ export function RideActionCard({ ride, onStartRide, onFinishRide }: RideActionCa
 
           <div style={{ padding: '14px 16px' }}>
 
-            {/* Heure + statut */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            {/* Heure + Durée (centre) + Statut */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', marginBottom: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                 <Clock size={11} color="rgba(255,255,255,0.30)" strokeWidth={2} />
                 <span style={{
@@ -155,10 +156,25 @@ export function RideActionCard({ ride, onStartRide, onFinishRide }: RideActionCa
                   {formatTime(ride.scheduled_at)}
                 </span>
               </div>
+              {ride.duration_min != null && (
+                <span style={{
+                  fontFamily: "'DM Sans', system-ui, sans-serif",
+                  fontSize: 11, fontWeight: 600, color: '#ffffff',
+                  background: 'rgba(255,255,255,0.08)',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  borderRadius: 9999, padding: '3px 9px',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {ride.duration_min >= 60
+                    ? `${Math.floor(ride.duration_min / 60)}h${String(ride.duration_min % 60).padStart(2,'0')}`
+                    : `${ride.duration_min} min`}
+                </span>
+              )}
+              {ride.duration_min == null && <span />}
               <span style={{
                 fontFamily: "'DM Sans', system-ui, sans-serif",
                 fontSize: 11, fontWeight: 600, color: actionColor,
-                letterSpacing: '0.04em',
+                letterSpacing: '0.04em', textAlign: 'right',
               }}>
                 {isAccepted ? 'Acceptée' : 'En cours'}
               </span>
@@ -180,15 +196,26 @@ export function RideActionCard({ ride, onStartRide, onFinishRide }: RideActionCa
                 </p>
               </div>
 
-              <div style={{
-                width: 26, height: 26, borderRadius: 9999,
-                background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(255,255,255,0.10)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <path d="M1 5h8M6 3l2 2-2 2" stroke="rgba(255,255,255,0.45)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
+                {ride.distance_km != null && (
+                  <span style={{
+                    fontFamily: "'DM Sans', system-ui, sans-serif",
+                    fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.50)',
+                    whiteSpace: 'nowrap',
+                  }}>
+                    {ride.distance_km} km
+                  </span>
+                )}
+                <div style={{
+                  width: 26, height: 26, borderRadius: 9999,
+                  background: 'rgba(255,255,255,0.06)',
+                  border: '1px solid rgba(255,255,255,0.10)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                    <path d="M1 5h8M6 3l2 2-2 2" stroke="rgba(255,255,255,0.45)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
               </div>
 
               <div style={{ textAlign: 'right' }}>

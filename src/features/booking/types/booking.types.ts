@@ -20,10 +20,11 @@ export interface ScheduledDateTime {
 }
 
 export interface PassengerSelection {
-  type:       'self' | 'saved' | 'new'
-  passengerId?: string
-  name?:       string
-  phone?:      string
+  type:          'self' | 'saved' | 'new'
+  passengerId?:  string
+  name?:         string
+  phone?:        string
+  saveForLater?: boolean
 }
 
 export interface BookingFormState {
@@ -44,6 +45,7 @@ export interface BookingFormErrors {
 /* ── Ce qu'on envoie à Supabase ── */
 export interface CreateBookingDTO {
   booker_id:        string | null    // utilisateur connecté
+  passenger_id:     string | null    // passager enregistré
   pickup_address:   string
   dropoff_address:  string
   pickup_lat:       number | null
@@ -55,6 +57,8 @@ export interface CreateBookingDTO {
   scheduled_at:     string | null    // ISO string — null = maintenant
   notes:            string | null
   status:           BookingStatus    // toujours 'pending' à la création
+  distance_km:      number | null
+  duration_min:     number | null
 }
 
 /* ── Ce que Supabase retourne ── */
@@ -75,6 +79,8 @@ export interface Booking {
   estimated_price:  number | null
   driver_price:     number | null
   driver_id:        string | null
+  distance_km:      number | null
+  duration_min:     number | null
   status:           BookingStatus
   created_at:       string
   updated_at:       string

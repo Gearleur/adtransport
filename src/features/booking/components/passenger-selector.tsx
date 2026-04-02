@@ -11,13 +11,7 @@ import { ChevronDown, Plus, User, Star, Check, X, Phone } from 'lucide-react'
 import { usePassengers } from '@/features/profile/hooks/use-passengers'
 import type { Passenger, CreatePassengerDTO } from '@/features/profile/services/passenger.service'
 
-export interface PassengerSelection {
-  type:          'self' | 'saved' | 'new'
-  passenger?:    Passenger
-  name?:         string
-  phone?:        string
-  saveForLater?: boolean
-}
+import type { PassengerSelection } from '../types/booking.types'
 
 interface PassengerSelectorProps {
   value:    PassengerSelection | null
@@ -28,8 +22,9 @@ export function PassengerSelector({ value, onChange }: PassengerSelectorProps) {
   const { passengers, add } = usePassengers()
   const [open,     setOpen]     = useState(false)
   const [mode,     setMode]     = useState<'list' | 'new'>('list')
-  const [newName,  setNewName]  = useState('')
-  const [newPhone, setNewPhone] = useState('')
+  const [newFirstName, setNewFirstName] = useState('')
+  const [newLastName,  setNewLastName]  = useState('')
+  const [newPhone,     setNewPhone]     = useState('')
   const [save,     setSave]     = useState(false)
   const [saving,   setSaving]   = useState(false)
   const dropdownRef             = useRef<HTMLDivElement>(null)
@@ -37,12 +32,19 @@ export function PassengerSelector({ value, onChange }: PassengerSelectorProps) {
   const selfPassenger = passengers.find(p => p.is_default)
   const others        = passengers.filter(p => !p.is_default)
 
+  /* Auto-sélectionne le passager par défaut dès le chargement */
+  useEffect(() => {
+    if (!value && selfPassenger) {
+      setTimeout(() => onChange({ type: 'self', passengerId: selfPassenger.id, name: `${selfPassenger.first_name} ${selfPassenger.last_name}`, phone: selfPassenger.phone }), 0)
+    }
+  }, [selfPassenger]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const label = !value
     ? 'Choisir un passager'
     : value.type === 'self'
-      ? selfPassenger ? `${selfPassenger.first_name} ${selfPassenger.last_name}` : 'Moi-même'
+      ? (value.name ?? (selfPassenger ? `${selfPassenger.first_name} ${selfPassenger.last_name}` : 'Moi-même'))
       : value.type === 'saved'
-        ? `${value.passenger!.first_name} ${value.passenger!.last_name}`
+        ? (value.name ?? 'Passager')
         : value.name || 'Nouveau passager'
 
   /* Ferme le dropdown desktop au clic extérieur — uniquement sur desktop */
@@ -61,19 +63,22 @@ export function PassengerSelector({ value, onChange }: PassengerSelectorProps) {
   }, [open])
 
   async function handleNew() {
-    if (!newName.trim() || !newPhone.trim()) return
+    if (!newFirstName.trim() || !newLastName.trim() || !newPhone.trim()) return
     setSaving(true)
-    const parts = newName.trim().split(' ')
     const dto: CreatePassengerDTO = {
-      first_name: parts[0], last_name: parts.slice(1).join(' ') || '.',
-      phone: newPhone, note: null, is_default: false,
+      first_name: newFirstName.trim(),
+      last_name:  newLastName.trim(),
+      phone:      newPhone.trim(),
+      note:       null,
+      is_default: false,
     }
     if (save) await add(dto)
-    onChange({ type: 'new', name: newName.trim(), phone: newPhone, saveForLater: save })
+    onChange({ type: 'new', name: `${newFirstName.trim()} ${newLastName.trim()}`, phone: newPhone.trim(), saveForLater: save })
     setSaving(false)
     setOpen(false)
     setMode('list')
-    setNewName('')
+    setNewFirstName('')
+    setNewLastName('')
     setNewPhone('')
     setSave(false)
   }
@@ -87,7 +92,7 @@ export function PassengerSelector({ value, onChange }: PassengerSelectorProps) {
           </p>
           <OptionBtn
             isSelected={value?.type === 'self'}
-            onClick={() => { onChange({ type: 'self', passenger: selfPassenger }); setOpen(false) }}
+            onClick={() => { onChange({ type: 'self', passengerId: selfPassenger.id, name: `${selfPassenger.first_name} ${selfPassenger.last_name}`, phone: selfPassenger.phone }); setOpen(false) }}
             avatar={selfPassenger.first_name[0].toUpperCase()}
             name={`${selfPassenger.first_name} ${selfPassenger.last_name}`}
             sub={selfPassenger.phone}
@@ -103,8 +108,8 @@ export function PassengerSelector({ value, onChange }: PassengerSelectorProps) {
           {others.map(p => (
             <OptionBtn
               key={p.id}
-              isSelected={value?.type === 'saved' && value.passenger?.id === p.id}
-              onClick={() => { onChange({ type: 'saved', passenger: p }); setOpen(false) }}
+              isSelected={value?.type === 'saved' && value.passengerId === p.id}
+              onClick={() => { onChange({ type: 'saved', passengerId: p.id, name: `${p.first_name} ${p.last_name}`, phone: p.phone }); setOpen(false) }}
               avatar={p.first_name[0].toUpperCase()}
               name={`${p.first_name} ${p.last_name}`}
               sub={p.note ?? undefined}
@@ -138,7 +143,10 @@ export function PassengerSelector({ value, onChange }: PassengerSelectorProps) {
 
   const newContent = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <SheetInput placeholder="Prénom Nom" value={newName} onChange={setNewName} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        <SheetInput placeholder="Prénom" value={newFirstName} onChange={setNewFirstName} />
+        <SheetInput placeholder="Nom" value={newLastName} onChange={setNewLastName} />
+      </div>
       <SheetInput placeholder="+33 6 00 00 00 00" type="tel" value={newPhone} onChange={setNewPhone} />
       <button onClick={() => setSave(s => !s)} style={{
         display: 'flex', alignItems: 'center', gap: 8,
@@ -162,13 +170,13 @@ export function PassengerSelector({ value, onChange }: PassengerSelectorProps) {
       </button>
       <button
         onClick={handleNew}
-        disabled={!newName.trim() || !newPhone.trim() || saving}
+        disabled={!newFirstName.trim() || !newLastName.trim() || !newPhone.trim() || saving}
         style={{
           width: '100%', height: 44, borderRadius: 12, border: 'none', cursor: 'pointer',
           background: '#ffffff', color: '#07090f',
           fontFamily: "'DM Sans', system-ui, sans-serif",
           fontSize: 13, fontWeight: 700,
-          opacity: (!newName.trim() || !newPhone.trim()) ? 0.4 : 1,
+          opacity: (!newFirstName.trim() || !newLastName.trim() || !newPhone.trim()) ? 0.4 : 1,
           transition: 'opacity 150ms ease',
         }}
       >

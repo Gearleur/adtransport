@@ -27,6 +27,8 @@ export interface DriverRide {
   notes:            string | null
   estimated_price:  number | null
   driver_price:     number | null
+  distance_km:      number | null
+  duration_min:     number | null
   driver_id:        string | null
 }
 

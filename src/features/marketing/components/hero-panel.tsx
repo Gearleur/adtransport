@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { Star, Shield, Clock } from 'lucide-react'
 import { Logo } from '@/components/branding/logo'
 import { BtnPrimary, BtnSecondary } from '@/components/ui/buttons'
@@ -19,9 +18,7 @@ export function HeroPanel() {
         display: 'flex', alignItems: 'center',
         justifyContent: 'space-between', marginBottom: 40, gap: 12,
       }}>
-        <Link href="/" style={{ textDecoration: 'none', flexShrink: 0 }}>
-          <Logo size="md" />
-        </Link>
+        <Logo size="md" />
         <NavLinksInline />
         <AuthButton />
       </div>
@@ -34,7 +31,7 @@ export function HeroPanel() {
           <LocationInputs size="md" />
         </div>
 
-        <div style={{ marginTop: 'auto', marginBottom: 32, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 24 }}>
           <BtnPrimary href="/reserver" fullWidth size="lg">
             Réserver une course
           </BtnPrimary>

@@ -14,6 +14,7 @@ import type {
   ScheduledDateTime,
 } from '../types/booking.types'
 import type { Location } from '@/features/locations/types/location.types'
+import { getRoutingInfo } from '@/features/locations/services/geocoding.service'
 import type { User } from '@/features/auth/types/auth.types'
 
 const INITIAL_STATE: BookingFormState = {
@@ -101,8 +102,12 @@ export function useBookingForm() {
       ).toISOString()
     }
 
+    /* passenger_id si passager sauvegardé ou self */
+    const passengerId = form.passenger?.passengerId ?? null
+
     return {
       booker_id:       user.id,
+      passenger_id:    passengerId,
       pickup_address:  form.pickup.label,
       dropoff_address: form.destination.label,
       pickup_lat:      form.pickup.lat,
@@ -116,6 +121,8 @@ export function useBookingForm() {
       scheduled_at,
       notes:           form.notes || null,
       status:          'pending',
+      distance_km:     null,   // calculé après submit via OSRM
+      duration_min:    null,
     }
   }
 

@@ -15,15 +15,22 @@ export function bookingToRideCard(b: Booking): RideCardData {
     pickupCity:   extractCity(b.pickup_address),
     dropoffLabel: b.dropoff_address,
     dropoffCity:  extractCity(b.dropoff_address),
-    scheduledAt:  b.scheduled_at,
-    price:        b.driver_price ?? b.estimated_price ?? null,
+    scheduledAt:    b.scheduled_at,
+    price:          b.driver_price ?? b.estimated_price ?? null,
+    passengerName:  b.passenger_name ?? null,
+    distanceKm:     b.distance_km ?? null,
+    durationMin:    b.duration_min ?? null,
   }
 }
 
 /* ── Extrait la partie courte d'une adresse ── */
 export function extractCity(address: string): string {
-  const parts = address.split(',')
-  return parts[0]?.trim() ?? address
+  const parts = address.split(',').map(p => p.trim())
+  /* Si le premier segment est un numéro seul, combine avec le suivant */
+  if (parts.length > 1 && /^\d+$/.test(parts[0])) {
+    return `${parts[0]} ${parts[1]}`
+  }
+  return parts[0] ?? address
 }
 
 /* ── Formate une date ISO pour affichage ── */

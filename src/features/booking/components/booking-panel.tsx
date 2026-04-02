@@ -13,6 +13,7 @@ import { PassengerSelector } from './passenger-selector'
 import { LocationPicker } from '@/features/locations/components/location-picker'
 import { useBookingForm } from '../hooks/use-booking-form'
 import { createBooking } from '../services/booking.service'
+import { getRoutingInfo } from '@/features/locations/services/geocoding.service'
 import { useAuth } from '@/features/auth/context/auth-context'
 
 export function BookingPanel() {
@@ -32,9 +33,23 @@ export function BookingPanel() {
     if (!validate() || !user) return
     const dto = toDTO(user)
     if (!dto) return
+
     setIsSubmitting(true)
     setServerError(null)
-    const { booking, error } = await createBooking(dto)
+
+    let finalDto = dto
+
+    if (dto.pickup_lat && dto.pickup_lng && dto.dropoff_lat && dto.dropoff_lng) {
+      const route = await getRoutingInfo(
+        { lat: dto.pickup_lat, lng: dto.pickup_lng },
+        { lat: dto.dropoff_lat, lng: dto.dropoff_lng }
+      ).catch(() => null)
+      if (route) {
+        finalDto = { ...dto, distance_km: route.distanceKm, duration_min: route.durationMin }
+      }
+    }
+
+    const { booking, error } = await createBooking(finalDto)
     setIsSubmitting(false)
     if (error) { setServerError(error); return }
     if (booking) router.push(`/reserver/confirmation?id=${booking.id}`)

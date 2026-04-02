@@ -7,6 +7,7 @@
 
 import { useState } from 'react'
 import { MapPin, Clock, User, Phone, FileText, Check, X } from 'lucide-react'
+import { RouteBadge } from '@/components/ui/route-badge'
 import type { DriverRide } from '../../services/driver.service'
 
 interface PendingRideCardProps {
@@ -105,15 +106,18 @@ export function PendingRideCard({ ride, onAccept, onDecline }: PendingRideCardPr
           onClick={() => setExpanded(e => !e)}
           style={{ padding: '14px 16px', cursor: 'pointer' }}
         >
-          {/* Date */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-            <Clock size={12} color="rgba(255,255,255,0.30)" strokeWidth={2} />
-            <span style={{
-              fontFamily: "'DM Sans', system-ui, sans-serif",
-              fontSize: 12, color: 'rgba(255,255,255,0.45)',
-            }}>
-              {formatDate(ride.scheduled_at)}
-            </span>
+          {/* Date + Badge durée/km en haut à droite */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Clock size={12} color="rgba(255,255,255,0.30)" strokeWidth={2} />
+              <span style={{
+                fontFamily: "'DM Sans', system-ui, sans-serif",
+                fontSize: 12, color: 'rgba(255,255,255,0.45)',
+              }}>
+                {formatDate(ride.scheduled_at)}
+              </span>
+            </div>
+            <RouteBadge durationMin={ride.duration_min} distanceKm={ride.distance_km} />
           </div>
 
           {/* Trajet */}

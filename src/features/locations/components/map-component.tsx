@@ -28,7 +28,6 @@ export function MapComponent({
   const [pinState, setPinState] = useState<'idle' | 'dragging' | 'dropping'>('idle')
   const [address, setAddress]   = useState<string | null>(null)
 
-  /* Toujours à jour sans recréer la carte */
   pickModeRef.current = pickMode
   onPickedRef.current = onLocationPicked
 
@@ -39,8 +38,11 @@ export function MapComponent({
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
+    if ('_leaflet_id' in containerRef.current) return
 
     async function initMap() {
+
+
       if (!document.getElementById('leaflet-css')) {
         const link  = document.createElement('link')
         link.id     = 'leaflet-css'
@@ -58,9 +60,10 @@ export function MapComponent({
         center, zoom,
         zoomControl: false,
         attributionControl: false,
+        minZoom: 6,   // France + Belgique + Allemagne visibles
+        maxZoom: 18,
       })
 
-      /* ── Tiles — couleurs d'origine ── */
       L.tileLayer(
         'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png',
         {
@@ -86,7 +89,6 @@ export function MapComponent({
         const loc = await reverseGeocode(c.lat, c.lng)
         if (loc) {
           setAddress(loc.label)
-          /* Notifie le parent automatiquement — le bouton Confirmer devient actif */
           onPickedRef.current?.(pickModeRef.current, loc)
         }
         setPinState('idle')
@@ -112,7 +114,6 @@ export function MapComponent({
   return (
     <>
       <style>{`
-        /* ── Filtre couleurs d'origine ── */
         .leaflet-tile { filter: contrast(1.05) brightness(1.15) saturate(0.9) !important; }
         .leaflet-container {
           background: #07090f !important;
@@ -148,22 +149,15 @@ export function MapComponent({
         .pin-drop-anim { animation: pin-drop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
       `}</style>
 
-      {/*
-        Wrapper position:relative — référence commune carte + overlays.
-        PAS de overflow:hidden pour que le pin reste visible.
-      */}
       <div
         className={className}
         style={{ position: 'relative', width: '100%', height: '100%', ...style }}
       >
-        {/* Carte Leaflet */}
         <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
 
-        {/* ── Pin central fixe ── */}
         {pickMode && (
           <div style={{
             position: 'absolute',
-            /* Pointe du pin au centre exact */
             top: 'calc(50% - 42px)',
             left: 'calc(50% - 16px)',
             zIndex: 1000,
@@ -182,27 +176,21 @@ export function MapComponent({
               }}
             >
               <svg width="32" height="42" viewBox="0 0 32 42" fill="none">
-                {/* Ombre portée */}
                 <ellipse cx="16" cy="40" rx="7" ry="2.5" fill="rgba(0,0,0,0.3)"
                   style={{
                     opacity: pinState === 'dragging' ? 0.1 : 0.6,
                     transition: 'opacity 150ms ease',
                   }}
                 />
-                {/* Corps goutte */}
                 <path
                   d="M16 1C10.477 1 6 5.477 6 11c0 8.5 10 26 10 26S26 19.5 26 11C26 5.477 21.523 1 16 1z"
                   fill="#4a9eff"
                 />
-                {/* Point blanc */}
                 <circle cx="16" cy="11" r="5" fill="white"/>
               </svg>
             </div>
           </div>
         )}
-
-
-
       </div>
     </>
   )

@@ -6,6 +6,7 @@
    ============================================================ */
 
 import { MapPin, Phone, Clock, ChevronRight, CheckCircle2, PlayCircle } from 'lucide-react'
+import { RouteBadge } from '@/components/ui/route-badge'
 import type { DriverRide } from '../../services/driver.service'
 
 interface DesktopRideCardProps {
@@ -72,14 +73,21 @@ export function DesktopRideCard({ ride, onStart, onFinish, isActing }: DesktopRi
                 }} />
                 {isInProgress ? 'En cours' : 'Acceptée'}
               </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                <Clock size={12} color="rgba(255,255,255,0.25)" strokeWidth={2} />
-                <span style={{
-                  fontFamily: "'DM Sans', system-ui, sans-serif",
-                  fontSize: 13, color: 'rgba(255,255,255,0.40)',
-                }}>
-                  {formatDate(ride.scheduled_at)} · {formatTime(ride.scheduled_at)}
-                </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <Clock size={12} color="rgba(255,255,255,0.25)" strokeWidth={2} />
+                  <span style={{
+                    fontFamily: "'DM Sans', system-ui, sans-serif",
+                    fontSize: 13, color: 'rgba(255,255,255,0.40)',
+                  }}>
+                    {formatDate(ride.scheduled_at)} · {formatTime(ride.scheduled_at)}
+                  </span>
+                </div>
+                <RouteBadge
+                  durationMin={ride.duration_min}
+                  distanceKm={ride.distance_km}
+                  style={{ fontSize: 13, padding: '5px 14px' }}
+                />
               </div>
             </div>
 
@@ -135,6 +143,7 @@ export function DesktopRideCard({ ride, onStart, onFinish, isActing }: DesktopRi
 
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
               <div style={{ height: 1, width: 40, background: 'rgba(255,255,255,0.10)' }} />
+
               <div style={{
                 width: 30, height: 30, borderRadius: 9999,
                 background: 'rgba(255,255,255,0.06)',

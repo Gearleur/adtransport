@@ -96,7 +96,7 @@ export function LocationPicker({ field, onConfirm, onCancel }: LocationPickerPro
           borderTop: '1px solid rgba(255,255,255,0.08)',
           borderRadius: '20px 20px 0 0',
           padding: '16px 20px',
-          paddingBottom: 'max(24px, env(safe-area-inset-bottom, 16px))',
+          paddingBottom: 'max(110px, calc(env(safe-area-inset-bottom, 0px) + 100px))',
         }}>
           {/* Handle */}
           <div style={{
@@ -169,8 +169,8 @@ export function LocationPicker({ field, onConfirm, onCancel }: LocationPickerPro
 
           {/* Titre */}
           <h2 style={{
-            fontFamily:"'Plus Jakarta Sans', system-ui, sans-serif",
-            fontWeight: 800, fontStyle: 'normal',
+            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            fontWeight: 700, fontStyle: 'italic',
             fontSize: 'clamp(1.75rem, 2vw, 2.25rem)',
             color: '#ffffff', lineHeight: 1.1,
             letterSpacing: '-0.01em', marginBottom: 8,
