@@ -8,7 +8,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { LogOut, KeyRound, Trash2 } from 'lucide-react'
-import { sendPasswordReset } from '../services/profile.service'
+import { sendPasswordReset } from '../../services/profile.service'
 
 interface ProfileDangerZoneProps {
   email: string

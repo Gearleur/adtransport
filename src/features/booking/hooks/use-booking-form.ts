@@ -7,7 +7,7 @@
 
 import { useState, useCallback } from 'react'
 import type {
-  BookingFormState,
+  BookingFormState, PassengerSelection,
   BookingFormErrors,
   CreateBookingDTO,
   RideType,
@@ -22,6 +22,7 @@ const INITIAL_STATE: BookingFormState = {
   rideType:    'now',
   scheduledAt: null,
   notes:       '',
+  passenger:   null,
 }
 
 export function useBookingForm() {
@@ -53,6 +54,10 @@ export function useBookingForm() {
 
   const setNotes = useCallback((notes: string) => {
     setForm(prev => ({ ...prev, notes }))
+  }, [])
+
+  const setPassenger = useCallback((passenger: BookingFormState['passenger']) => {
+    setForm(prev => ({ ...prev, passenger }))
   }, [])
 
   const swapLocations = useCallback(() => {
@@ -104,8 +109,10 @@ export function useBookingForm() {
       pickup_lng:      form.pickup.lng,
       dropoff_lat:     form.destination.lat,
       dropoff_lng:     form.destination.lng,
-      passenger_name:  `${user.firstName} ${user.lastName}`.trim() || null,
-      passenger_phone: user.phone || null,
+      passenger_name:  (form.passenger?.name
+        ?? (form.passenger?.type === 'saved' ? undefined : `${user.firstName} ${user.lastName}`.trim())
+        ?? `${user.firstName} ${user.lastName}`.trim()) || null,
+      passenger_phone: (form.passenger?.phone ?? user.phone) || null,
       scheduled_at,
       notes:           form.notes || null,
       status:          'pending',
@@ -120,7 +127,7 @@ export function useBookingForm() {
   return {
     form, errors, canSubmit,
     setPickup, setDestination, setRideType,
-    setScheduledAt, setNotes, swapLocations,
+    setScheduledAt, setNotes, setPassenger, swapLocations,
     validate, toDTO,
   }
 }

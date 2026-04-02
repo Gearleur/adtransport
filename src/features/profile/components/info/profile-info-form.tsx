@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react'
 import { Check, Loader2 } from 'lucide-react'
-import type { UserProfile, UpdateProfileDTO } from '../services/profile.service'
+import type { UserProfile, UpdateProfileDTO } from '../../services/profile.service'
 
 interface ProfileInfoFormProps {
   profile:  UserProfile

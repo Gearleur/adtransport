@@ -3,42 +3,37 @@
 import { useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { BtnPrimary } from '@/components/ui/buttons'
 import { LocationInputsBooking } from './location-inputs-booking'
 import { RideTypeSelector } from './ride-type-selector'
 import { SchedulePicker } from './schedule-picker'
+import { PassengerSelector } from './passenger-selector'
 import { LocationPicker } from '@/features/locations/components/location-picker'
 import { useBookingForm } from '../hooks/use-booking-form'
 import { createBooking } from '../services/booking.service'
 import { useAuth } from '@/features/auth/context/auth-context'
 
 export function BookingMobile() {
-  const router           = useRouter()
-  const { user }         = useAuth()
+  const router   = useRouter()
+  const { user } = useAuth()
   const {
     form, errors, canSubmit,
-    setPickup, setDestination, setRideType, setScheduledAt,
+    setPickup, setDestination, setRideType, setScheduledAt, setPassenger,
     validate, toDTO,
   } = useBookingForm()
 
-  const [pickMode, setPickMode]         = useState<'pickup' | 'destination' | null>(null)
+  const [pickMode,     setPickMode]     = useState<'pickup' | 'destination' | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [serverError, setServerError]   = useState<string | null>(null)
+  const [serverError,  setServerError]  = useState<string | null>(null)
 
   async function handleSubmit() {
     if (!validate() || !user) return
-
     const dto = toDTO(user)
     if (!dto) return
-
     setIsSubmitting(true)
     setServerError(null)
-
     const { booking, error } = await createBooking(dto)
-
     setIsSubmitting(false)
-
     if (error) { setServerError(error); return }
     if (booking) router.push(`/reserver/confirmation?id=${booking.id}`)
   }
@@ -88,7 +83,7 @@ export function BookingMobile() {
           </span>
         </div>
 
-        {/* Inputs */}
+        {/* Trajet */}
         <div style={{ marginBottom: 16 }}>
           <LocationInputsBooking
             onPickupSelect={setPickup}
@@ -111,6 +106,24 @@ export function BookingMobile() {
           </div>
         )}
 
+        {/* Passager */}
+        <div style={{ marginTop: 20 }}>
+          <label style={{
+            display: 'block',
+            fontFamily: "'DM Sans', system-ui, sans-serif",
+            fontSize: 11, fontWeight: 600,
+            color: 'rgba(255,255,255,0.28)',
+            letterSpacing: '0.07em', textTransform: 'uppercase',
+            marginBottom: 8,
+          }}>
+            Passager
+          </label>
+          <PassengerSelector
+            value={form.passenger}
+            onChange={setPassenger}
+          />
+        </div>
+
         {serverError && (
           <div style={{
             marginTop: 16, padding: '12px 14px',
@@ -126,12 +139,7 @@ export function BookingMobile() {
 
         {/* CTA */}
         <div style={{ marginTop: 'auto', paddingTop: 40 }}>
-          <BtnPrimary
-            fullWidth size="lg"
-            disabled={!canSubmit}
-            loading={isSubmitting}
-            onClick={handleSubmit}
-          >
+          <BtnPrimary fullWidth size="lg" disabled={!canSubmit} loading={isSubmitting} onClick={handleSubmit}>
             Continuer
           </BtnPrimary>
           {!canSubmit && (
@@ -146,7 +154,6 @@ export function BookingMobile() {
             </p>
           )}
         </div>
-
       </div>
     </>
   )

@@ -19,12 +19,20 @@ export interface ScheduledDateTime {
   time: string   // "14:30"
 }
 
+export interface PassengerSelection {
+  type:       'self' | 'saved' | 'new'
+  passengerId?: string
+  name?:       string
+  phone?:      string
+}
+
 export interface BookingFormState {
   pickup:      Location | null
   destination: Location | null
   rideType:    RideType
   scheduledAt: ScheduledDateTime | null
   notes:       string
+  passenger:   PassengerSelection | null
 }
 
 export interface BookingFormErrors {
