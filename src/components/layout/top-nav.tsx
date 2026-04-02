@@ -47,9 +47,7 @@ export function TopNav() {
       `}</style>
 
       <header className="top-nav">
-        <Link href="/" style={{ textDecoration: 'none', flexShrink: 0 }}>
-          <Logo size="md" />
-        </Link>
+        <Logo size="md" />
 
         <nav className="top-nav-links">
           <Link

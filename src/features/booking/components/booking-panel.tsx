@@ -1,9 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { ArrowLeft } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Logo } from '@/components/branding/logo'
 import { AuthButton } from '@/features/auth/components/auth-button'
 import { NavLinksInline } from '@/components/layout/nav-links-inline'
 import { BtnPrimary } from '@/components/ui/buttons'
@@ -72,9 +71,17 @@ export function BookingPanel() {
           justifyContent: 'space-between',
           marginBottom: 40, gap: 12,
         }}>
-          <Link href="/" style={{ textDecoration: 'none', flexShrink: 0 }}>
-            <Logo size="md" />
-          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+            <button onClick={() => router.back()} style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              width: 36, height: 36, borderRadius: 999,
+              background: 'rgba(255,255,255,0.07)',
+              border: '1px solid rgba(255,255,255,0.09)',
+              color: 'rgba(255,255,255,0.80)', cursor: 'pointer', flexShrink: 0,
+            }}>
+              <ArrowLeft size={16} strokeWidth={2} />
+            </button>
+          </div>
           <NavLinksInline />
           <AuthButton />
         </div>

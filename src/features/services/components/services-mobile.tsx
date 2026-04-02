@@ -71,7 +71,7 @@ export function ServicesMobile() {
           color: 'rgba(255,255,255,0.60)',
           textDecoration: 'none', flexShrink: 0,
         }}>
-          <Phone size={14} strokeWidth={1.8} color="#4ade80" />
+          <span style={{ width: 5, height: 5, borderRadius: 9999, background: '#4ade80' }} />
           06 08 70 26 83
         </a>
       </div>

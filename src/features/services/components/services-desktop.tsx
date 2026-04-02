@@ -32,9 +32,7 @@ export function ServicesDesktop() {
           }}>
             <ArrowLeft size={16} strokeWidth={2} />
           </Link>
-          <Link href="/" style={{ textDecoration: 'none' }}>
-            <Logo size="md" />
-          </Link>
+          <Logo size="md" />
         </div>
 
         {/* Centre : téléphone avec icône */}

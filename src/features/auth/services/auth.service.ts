@@ -33,6 +33,7 @@ export async function login(
     firstName: profile?.first_name ?? data.user.user_metadata?.first_name ?? '',
     lastName:  profile?.last_name  ?? data.user.user_metadata?.last_name  ?? '',
     phone:     profile?.phone      ?? data.user.user_metadata?.phone      ?? '',
+    role:      profile?.role       ?? data.user.user_metadata?.role       ?? 'client',
     createdAt: data.user.created_at,
   }
 
@@ -76,6 +77,7 @@ export async function register(
     firstName: dto.firstName,
     lastName:  dto.lastName,
     phone:     dto.phone,
+    role:      'client',
     createdAt: data.user.created_at,
   }
 
@@ -104,6 +106,7 @@ export async function getSession(): Promise<User | null> {
     firstName: profile?.first_name ?? user.user_metadata?.first_name ?? '',
     lastName:  profile?.last_name  ?? user.user_metadata?.last_name  ?? '',
     phone:     profile?.phone      ?? user.user_metadata?.phone      ?? '',
+    role:      profile?.role       ?? user.user_metadata?.role       ?? 'client',
     createdAt: user.created_at,
   }
 }

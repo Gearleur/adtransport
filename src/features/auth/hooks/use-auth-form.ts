@@ -49,8 +49,20 @@ export function useLoginForm() {
 
     if (error) { setServerError(error); return }
     if (user) {
-      /* Full reload — garantit que les nouveaux cookies sont lus */
-      window.location.href = redirect
+      /* Vérifie le rôle via Supabase pour rediriger au bon endroit */
+      const { createBrowserClient } = await import('@supabase/ssr')
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+      const { data: profile } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+      const dest = profile?.role === 'owner' ? '/conducteur' : redirect
+      window.location.href = dest
     }
   }
 

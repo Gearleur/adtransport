@@ -10,29 +10,30 @@ const PUBLIC_API_ROUTES = [
   '/api/v1/auth/logout',
 ]
 
+function createSupabase(request: NextRequest, response: NextResponse) {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll:  () => request.cookies.getAll(),
+        setAll: (cookiesToSet) => {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  /* ── Protection routes booking ── */
+  /* ── Protection /reserver ── */
   if (pathname.startsWith('/reserver')) {
     const response = NextResponse.next()
-
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll:  () => request.cookies.getAll(),
-          setAll: (cookiesToSet) => {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              response.cookies.set(name, value, options)
-            )
-          },
-        },
-      }
-    )
-
-    /* getUser() vérifie le JWT côté serveur Supabase — plus fiable que getSession() */
+    const supabase = createSupabase(request, response)
     const { data: { user }, error } = await supabase.auth.getUser()
 
     console.log('[proxy] /reserver - user:', user?.email ?? 'null', 'error:', error?.message ?? 'none')
@@ -46,11 +47,58 @@ export async function proxy(request: NextRequest) {
     return response
   }
 
+  /* ── Protection /home — redirige owner vers /conducteur ── */
+  if (pathname.startsWith('/home') || pathname.startsWith('/profil')) {
+    const response = NextResponse.next()
+    const supabase = createSupabase(request, response)
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (user) {
+      const { data: profile } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+      if (profile?.role === 'owner') {
+        return NextResponse.redirect(new URL('/conducteur', request.url))
+      }
+    }
+
+    return response
+  }
+
+  /* ── Protection /conducteur — rôle owner uniquement ── */
+  if (pathname.startsWith('/conducteur')) {
+    const response = NextResponse.next()
+    const supabase = createSupabase(request, response)
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('redirect', pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+
+    const { data: profile } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    console.log('[proxy] /conducteur - user:', user.email, 'role:', profile?.role ?? 'none')
+
+    if (profile?.role !== 'owner') {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
+
+    return response
+  }
+
   /* ── Protection routes API ── */
   if (!pathname.startsWith('/api/v1')) return NextResponse.next()
   if (PUBLIC_API_ROUTES.includes(pathname))  return NextResponse.next()
 
-  /* Logout route — toujours accessible */
   if (pathname === '/api/auth/logout') return NextResponse.next()
 
   const apiKey = request.headers.get('x-api-key')
@@ -62,5 +110,11 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/reserver/:path*', '/reserver', '/api/v1/:path*'],
+  matcher: [
+    '/reserver/:path*', '/reserver',
+    '/conducteur/:path*', '/conducteur',
+    '/home/:path*', '/home',
+    '/profil/:path*', '/profil',
+    '/api/v1/:path*',
+  ],
 }

@@ -10,61 +10,52 @@ interface AuthContextValue {
   user:       User | null
   isLoggedIn: boolean
   isLoading:  boolean
+  isOwner:    boolean
 }
 
 const AuthContext = createContext<AuthContextValue>({
   user:       null,
   isLoggedIn: false,
   isLoading:  true,
+  isOwner:    false,
 })
 
-async function buildUser(su: {
+/* ── Construit l'user depuis les métadonnées uniquement — 0 requête DB ── */
+function buildUserFromSession(su: {
   id: string
   email?: string
   created_at: string
   user_metadata?: Record<string, string>
-}): Promise<User> {
-  const { data: profile } = await supabaseClient
-    .from('users')
-    .select('first_name, last_name, phone')
-    .eq('id', su.id)
-    .maybeSingle()
-
+}): User {
   return {
     id:        su.id,
     email:     su.email ?? '',
-    firstName: profile?.first_name ?? su.user_metadata?.first_name ?? '',
-    lastName:  profile?.last_name  ?? su.user_metadata?.last_name  ?? '',
-    phone:     profile?.phone      ?? su.user_metadata?.phone      ?? '',
+    firstName: su.user_metadata?.first_name ?? '',
+    lastName:  su.user_metadata?.last_name  ?? '',
+    phone:     su.user_metadata?.phone      ?? '',
+    role:      su.user_metadata?.role       ?? 'client',
     createdAt: su.created_at,
   }
 }
 
-/* Lit le cache localStorage — synchrone, disponible immédiatement */
 function readCachedUser(): User | null {
   if (typeof window === 'undefined') return null
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     return raw ? (JSON.parse(raw) as User) : null
-  } catch {
-    return null
-  }
+  } catch { return null }
 }
 
 function writeCachedUser(user: User | null) {
   if (typeof window === 'undefined') return
   try {
     if (user) localStorage.setItem(STORAGE_KEY, JSON.stringify(user))
-    else       localStorage.removeItem(STORAGE_KEY)
+    else      localStorage.removeItem(STORAGE_KEY)
   } catch { /* ignore */ }
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  /*
-    Toujours null/true côté serveur pour éviter l'hydration mismatch.
-    Le cache localStorage est chargé dans useEffect (client uniquement).
-  */
-  const [user, setUser]           = useState<User | null>(null)
+  const [user,      setUser]      = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   function setAndCache(u: User | null) {
@@ -73,32 +64,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    /* 0. Charge le cache localStorage immédiatement (côté client) */
+    /* 1. Cache localStorage — immédiat, 0ms */
     const cached = readCachedUser()
     if (cached) {
       setUser(cached)
       setIsLoading(false)
     }
 
-    /* 1. Vérifie la session Supabase en arrière-plan */
-    supabaseClient.auth.getSession().then(async ({ data: { session } }) => {
+    /* 2. Session Supabase — 1 seule requête réseau */
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        const u = await buildUser(session.user)
-        setAndCache(u)
+        setAndCache(buildUserFromSession(session.user))
       } else {
         setAndCache(null)
       }
       setIsLoading(false)
     })
 
-    /* Écoute les changements en temps réel */
+    /* 3. Changements temps réel */
     const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-          if (session?.user) {
-            const u = await buildUser(session.user)
-            setAndCache(u)
-          }
+      (event, session) => {
+        if (
+          event === 'SIGNED_IN' ||
+          event === 'TOKEN_REFRESHED' ||
+          event === 'USER_UPDATED'
+        ) {
+          if (session?.user) setAndCache(buildUserFromSession(session.user))
         }
         if (event === 'SIGNED_OUT') {
           setAndCache(null)
@@ -120,6 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user,
       isLoggedIn: user !== null,
       isLoading,
+      isOwner:    user?.role === 'owner',
     }}>
       {children}
     </AuthContext.Provider>

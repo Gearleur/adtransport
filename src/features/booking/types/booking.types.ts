@@ -1,8 +1,6 @@
 /* ============================================================
    features/booking/types/booking.types.ts
-
-   Aligné sur la structure réelle de Supabase :
-   table booking_requests
+   Aligné sur la nouvelle table `bookings`
    ============================================================ */
 
 import type { Location } from '@/features/locations/types/location.types'
@@ -11,7 +9,7 @@ export type RideType = 'now' | 'schedule'
 
 export type BookingStatus =
   | 'pending'
-  | 'confirmed'
+  | 'accepted'
   | 'in_progress'
   | 'completed'
   | 'cancelled'
@@ -36,40 +34,40 @@ export interface BookingFormErrors {
 }
 
 /* ── Ce qu'on envoie à Supabase ── */
-/* Aligné exactement sur les colonnes de booking_requests */
 export interface CreateBookingDTO {
-  /* Adresses */
+  booker_id:        string | null    // utilisateur connecté
   pickup_address:   string
-  dropoff_address:  string   // ← ta table utilise dropoff, pas destination
-  pickup_lat:       number
-  pickup_lng:       number
-  dropoff_lat:      number
-  dropoff_lng:      number
-
-  /* Client — rempli depuis la session auth */
-  customer_name:    string
-  customer_email:   string
-  customer_phone:   string
-
-  /* Horaire */
-  requested_at:     string | null   // ISO string — null = maintenant
-
-  /* Infos complémentaires */
+  dropoff_address:  string
+  pickup_lat:       number | null
+  pickup_lng:       number | null
+  dropoff_lat:      number | null
+  dropoff_lng:      number | null
+  passenger_name:   string | null    // nom du passager si différent
+  passenger_phone:  string | null
+  scheduled_at:     string | null    // ISO string — null = maintenant
   notes:            string | null
-  currency:         string           // 'EUR'
-
-  /* Statut initial */
-  status:           BookingStatus    // 'pending'
+  status:           BookingStatus    // toujours 'pending' à la création
 }
 
 /* ── Ce que Supabase retourne ── */
-export interface Booking extends CreateBookingDTO {
-  id:                      string
-  estimated_distance_km:   number | null
-  base_price:              number | null
-  distance_price:          number | null
-  options_price:           number | null
-  total_estimated_price:   number | null
-  processed_at:            string | null
-  created_at:              string
+export interface Booking {
+  id:               string
+  booker_id:        string | null
+  passenger_id:     string | null
+  passenger_name:   string | null
+  passenger_phone:  string | null
+  pickup_address:   string
+  dropoff_address:  string
+  pickup_lat:       number | null
+  pickup_lng:       number | null
+  dropoff_lat:      number | null
+  dropoff_lng:      number | null
+  scheduled_at:     string | null
+  notes:            string | null
+  estimated_price:  number | null
+  driver_price:     number | null
+  driver_id:        string | null
+  status:           BookingStatus
+  created_at:       string
+  updated_at:       string
 }

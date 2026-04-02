@@ -2,6 +2,7 @@
 
 /* ============================================================
    features/booking/hooks/use-booking-form.ts
+   Aligné sur la nouvelle table `bookings`
    ============================================================ */
 
 import { useState, useCallback } from 'react'
@@ -84,39 +85,30 @@ export function useBookingForm() {
     return Object.keys(newErrors).length === 0
   }
 
-  /* ── Prépare le DTO pour Supabase ── */
-  /* Reçoit le user connecté pour remplir customer_name/email/phone */
+  /* ── Prépare le DTO pour Supabase (nouvelle table bookings) ── */
   function toDTO(user: User): CreateBookingDTO | null {
     if (!form.pickup || !form.destination) return null
 
-    let requested_at: string | null = null
+    let scheduled_at: string | null = null
     if (form.rideType === 'schedule' && form.scheduledAt) {
-      requested_at = new Date(
+      scheduled_at = new Date(
         `${form.scheduledAt.date}T${form.scheduledAt.time}`
       ).toISOString()
     }
 
     return {
-      /* Adresses — dropoff = destination (nom colonne Supabase) */
+      booker_id:       user.id,
       pickup_address:  form.pickup.label,
       dropoff_address: form.destination.label,
       pickup_lat:      form.pickup.lat,
       pickup_lng:      form.pickup.lng,
       dropoff_lat:     form.destination.lat,
       dropoff_lng:     form.destination.lng,
-
-      /* Client depuis la session */
-      customer_name:   `${user.firstName} ${user.lastName}`.trim(),
-      customer_email:  user.email,
-      customer_phone:  user.phone,
-
-      /* Horaire */
-      requested_at,
-
-      /* Extras */
-      notes:    form.notes || null,
-      currency: 'EUR',
-      status:   'pending',
+      passenger_name:  `${user.firstName} ${user.lastName}`.trim() || null,
+      passenger_phone: user.phone || null,
+      scheduled_at,
+      notes:           form.notes || null,
+      status:          'pending',
     }
   }
 

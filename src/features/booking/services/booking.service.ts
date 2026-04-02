@@ -1,8 +1,6 @@
 /* ============================================================
    features/booking/services/booking.service.ts
-
-   Appels Supabase pour les réservations.
-   Aucune logique UI — uniquement les opérations DB.
+   Aligné sur la nouvelle table `bookings`
    ============================================================ */
 
 import { supabaseClient } from '@/lib/supabase/client'
@@ -14,7 +12,7 @@ export async function createBooking(
 ): Promise<{ booking: Booking; error: null } | { booking: null; error: string }> {
 
   const { data, error } = await supabaseClient
-    .from('booking_requests')
+    .from('bookings')
     .insert(dto)
     .select()
     .single()
@@ -27,22 +25,30 @@ export async function createBooking(
   return { booking: data as Booking, error: null }
 }
 
-/* ── Récupérer les réservations d'un client ── */
-export async function getBookingsByEmail(
-  email: string
+/* ── Récupérer les réservations d'un utilisateur ── */
+export async function getBookingsByUserId(
+  userId: string
 ): Promise<Booking[]> {
   const { data, error } = await supabaseClient
-    .from('booking_requests')
+    .from('bookings')
     .select('*')
-    .eq('customer_email', email)
+    .eq('booker_id', userId)
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('[booking.service] getBookingsByEmail error:', error)
+    console.error('[booking.service] getBookingsByUserId error:', error)
     return []
   }
 
   return (data ?? []) as Booking[]
+}
+
+/* Alias pour compatibilité avec les hooks existants */
+export async function getBookingsByEmail(email: string): Promise<Booking[]> {
+  /* On passe par l'id utilisateur — récupère d'abord l'user */
+  const { data: { user } } = await supabaseClient.auth.getUser()
+  if (!user) return []
+  return getBookingsByUserId(user.id)
 }
 
 /* ── Récupérer une réservation par ID ── */
@@ -50,7 +56,7 @@ export async function getBookingById(
   id: string
 ): Promise<Booking | null> {
   const { data, error } = await supabaseClient
-    .from('booking_requests')
+    .from('bookings')
     .select('*')
     .eq('id', id)
     .single()
@@ -64,7 +70,7 @@ export async function cancelBooking(
   id: string
 ): Promise<{ error: string | null }> {
   const { error } = await supabaseClient
-    .from('booking_requests')
+    .from('bookings')
     .update({ status: 'cancelled' })
     .eq('id', id)
 

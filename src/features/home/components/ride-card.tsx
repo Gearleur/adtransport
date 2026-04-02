@@ -1,258 +1,272 @@
 'use client'
 
-/* ============================================================
-   features/bookings/components/ride-card.tsx
-   Carte billet de course — style boarding pass
-   ============================================================ */
+import { formatRideDate } from '../utils/ride.utils'
 
-import { MapPin, Navigation, Clock, ChevronRight } from 'lucide-react'
-
-export type RideStatus = 'upcoming' | 'in_progress' | 'completed' | 'cancelled'
+export type RideStatus = 'pending' | 'upcoming' | 'accepted' | 'in_progress' | 'completed' | 'cancelled'
 
 export interface RideCardData {
-  id:            string
-  status:        RideStatus
-  pickupLabel:   string
-  pickupCity:    string
-  dropoffLabel:  string
-  dropoffCity:   string
-  scheduledAt:   string | null  // ISO string
-  vehicleType?:  string
-  price?:        number | null
+  id:           string
+  status:       RideStatus
+  pickupLabel:  string
+  pickupCity:   string
+  dropoffLabel: string
+  dropoffCity:  string
+  scheduledAt:  string | null
+  price:        number | null
 }
 
-const STATUS_CONFIG: Record<RideStatus, { label: string; color: string; bg: string }> = {
-  upcoming:    { label: 'À venir',     color: '#60a5fa', bg: 'rgba(96,165,250,0.12)' },
-  in_progress: { label: 'En cours',   color: '#4ade80', bg: 'rgba(74,222,128,0.12)' },
-  completed:   { label: 'Terminée',   color: 'rgba(255,255,255,0.35)', bg: 'rgba(255,255,255,0.06)' },
-  cancelled:   { label: 'Annulée',    color: '#f87171', bg: 'rgba(248,113,113,0.10)' },
+const STATUS: Record<RideStatus, { label: string; glow: string; text: string; bar: string }> = {
+  pending:     { label: 'En attente de validation', glow: '#fbbf24', text: '#fcd34d', bar: 'linear-gradient(90deg,#92400e,#fbbf24,#fcd34d,#fbbf24,#92400e)' },
+  upcoming:    { label: 'Confirmée',                glow: '#60a5fa', text: '#93c5fd', bar: 'linear-gradient(90deg,#1d4ed8,#60a5fa,#bfdbfe,#60a5fa,#1d4ed8)' },
+  accepted:    { label: 'Confirmée',                glow: '#60a5fa', text: '#93c5fd', bar: 'linear-gradient(90deg,#1d4ed8,#60a5fa,#bfdbfe,#60a5fa,#1d4ed8)' },
+  in_progress: { label: 'En cours',                glow: '#4ade80', text: '#86efac', bar: 'linear-gradient(90deg,#166534,#4ade80,#bbf7d0,#4ade80,#166534)' },
+  completed:   { label: 'Terminée',                glow: '#6b7280', text: '#9ca3af', bar: 'linear-gradient(90deg,#374151,#6b7280,#9ca3af,#6b7280,#374151)' },
+  cancelled:   { label: 'Annulée',                 glow: '#f87171', text: '#fca5a5', bar: 'linear-gradient(90deg,#991b1b,#f87171,#fecaca,#f87171,#991b1b)' },
 }
 
-function formatDate(iso: string | null) {
-  if (!iso) return { day: '--', month: '', time: 'Maintenant' }
-  const d = new Date(iso)
-  return {
-    day:   d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' }),
-    month: d.toLocaleDateString('fr-FR', { month: 'long' }),
-    time:  d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-  }
-}
-
-function truncate(str: string, n: number) {
-  return str.length > n ? str.slice(0, n - 1) + '…' : str
+function shortAddress(full: string): string {
+  return full.split(',')[0]?.trim() ?? full
 }
 
 export function RideCard({ ride }: { ride: RideCardData }) {
-  const status = STATUS_CONFIG[ride.status]
-  const date   = formatDate(ride.scheduledAt)
+  const s       = STATUS[ride.status]
+  const date    = formatRideDate(ride.scheduledAt)
+  const dim     = ride.status === 'completed' || ride.status === 'cancelled'
+  const pickup  = shortAddress(ride.pickupLabel)
+  const dropoff = shortAddress(ride.dropoffLabel)
+
+  const shortDate = ride.scheduledAt
+    ? new Date(ride.scheduledAt).toLocaleDateString('fr-FR', {
+        weekday: 'short', day: 'numeric', month: 'long',
+      })
+    : null
 
   return (
     <>
       <style>{`
-        .ride-card {
-          position: relative;
-          background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
-          border: 1px solid rgba(255,255,255,0.09);
-          border-radius: 20px;
+        .rc-wrap {
+          display: flex; flex-direction: column;
+          filter:
+            drop-shadow(0 2px 0 rgba(255,255,255,0.04))
+            drop-shadow(0 8px 20px rgba(0,0,0,0.50))
+            drop-shadow(0 24px 48px rgba(0,0,0,0.55));
+          transition: transform 250ms ease, filter 250ms ease;
+        }
+        .rc-wrap:hover {
+          transform: translateY(-4px) rotate(0.3deg);
+          filter:
+            drop-shadow(0 2px 0 rgba(255,255,255,0.06))
+            drop-shadow(0 14px 28px rgba(0,0,0,0.60))
+            drop-shadow(0 32px 56px rgba(0,0,0,0.65));
+        }
+        .rc-body {
+          border-radius: 16px 16px 0 0;
+          border: 1px solid rgba(255,255,255,0.12);
+          border-bottom: none;
           overflow: hidden;
-          cursor: pointer;
-          transition: border-color 200ms ease, transform 200ms ease;
-          width: 100%;
-        }
-        .ride-card:hover {
-          border-color: rgba(255,255,255,0.16);
-          transform: translateY(-1px);
-        }
-
-        /* Ligne de séparation pointillée style boarding pass */
-        .ride-card-divider {
           position: relative;
-          height: 1px;
-          background: rgba(255,255,255,0.07);
-          margin: 0 20px;
+          background:
+            linear-gradient(125deg,
+              rgba(255,255,255,0.09) 0%,
+              rgba(255,255,255,0.03) 30%,
+              rgba(255,255,255,0.07) 55%,
+              rgba(255,255,255,0.02) 70%,
+              rgba(255,255,255,0.06) 100%
+            ),
+            linear-gradient(160deg, #1e2130 0%, #131520 100%);
         }
-        .ride-card-divider::before,
-        .ride-card-divider::after {
+        .rc-body::before {
           content: '';
-          position: absolute;
-          top: 50%; transform: translateY(-50%);
-          width: 14px; height: 14px;
-          border-radius: 9999px;
-          background: #07090f;
-          border: 1px solid rgba(255,255,255,0.09);
+          position: absolute; top: 0; left: 0; right: 0; height: 50px;
+          background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 100%);
+          pointer-events: none; z-index: 0;
         }
-        .ride-card-divider::before { left: -27px; }
-        .ride-card-divider::after  { right: -27px; }
+        .rc-stub {
+          border-radius: 0 0 16px 16px;
+          border: 1px solid rgba(255,255,255,0.08);
+          border-top: none;
+          overflow: hidden;
+          position: relative;
+          background:
+            linear-gradient(125deg,
+              rgba(255,255,255,0.05) 0%,
+              rgba(255,255,255,0.01) 50%,
+              rgba(255,255,255,0.04) 100%
+            ),
+            linear-gradient(160deg, #131520 0%, #0c0e18 100%);
+        }
+        .rc-stub::after {
+          content: '';
+          position: absolute; inset: 0;
+          background: linear-gradient(90deg,
+            transparent 0%, rgba(255,255,255,0.025) 50%, transparent 100%
+          );
+          pointer-events: none;
+        }
+        @keyframes rc-blink   { 0%,100%{opacity:1}50%{opacity:.15} }
+        @keyframes rc-shimmer { 0%{background-position:-200% center} 100%{background-position:200% center} }
       `}</style>
 
-      <div className="ride-card">
+      <div className="rc-wrap" style={{ opacity: dim ? 0.45 : 1 }}>
 
-        {/* Barre de statut en haut */}
-        <div style={{
-          height: 3,
-          background: status.color,
-          opacity: ride.status === 'completed' ? 0.3 : 0.7,
-        }} />
+        {/* ── Corps ── */}
+        <div className="rc-body">
 
-        {/* Section principale */}
-        <div style={{ padding: '18px 20px 14px' }}>
-
-          {/* Header : statut + date */}
+          {/* Barre shimmer colorée très lente */}
           <div style={{
-            display: 'flex', alignItems: 'center',
-            justifyContent: 'space-between', marginBottom: 16,
-          }}>
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: 5,
-              padding: '3px 10px', borderRadius: 9999,
-              background: status.bg, color: status.color,
-              fontSize: 11, fontWeight: 600,
-              fontFamily: "'DM Sans', system-ui, sans-serif",
-              letterSpacing: '0.03em',
-            }}>
-              <span style={{
-                width: 5, height: 5, borderRadius: 9999,
-                background: status.color, flexShrink: 0,
-                animation: ride.status === 'in_progress' ? 'pulse 1.5s infinite' : 'none',
-              }} />
-              {status.label}
-            </span>
+            height: 3,
+            background: s.bar,
+            backgroundSize: '300% 100%',
+            animation: dim ? 'none' : 'rc-shimmer 18s linear infinite',
+          }} />
 
-            <span style={{
-              fontFamily: "'DM Sans', system-ui, sans-serif",
-              fontSize: 12, color: 'rgba(255,255,255,0.35)',
-            }}>
-              {ride.scheduledAt ? date.day + ' · ' + date.time : 'Immédiat'}
-            </span>
-          </div>
+          <div style={{ padding: '16px 20px 18px', position: 'relative', zIndex: 1 }}>
 
-          {/* Trajet — style boarding pass */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-
-            {/* Départ */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3,
-              }}>
-                <MapPin size={11} color="rgba(255,255,255,0.35)" strokeWidth={2} />
-                <span style={{
-                  fontFamily: "'DM Sans', system-ui, sans-serif",
-                  fontSize: 10, color: 'rgba(255,255,255,0.35)',
-                  textTransform: 'uppercase', letterSpacing: '0.06em',
-                }}>
-                  Départ
-                </span>
-              </div>
-              <div style={{
-                fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
-                fontWeight: 700, fontSize: 16,
-                color: '#ffffff', letterSpacing: '-0.02em',
-                lineHeight: 1.1, marginBottom: 2,
-              }}>
-                {truncate(ride.pickupCity, 12)}
-              </div>
-              <div style={{
-                fontFamily: "'DM Sans', system-ui, sans-serif",
-                fontSize: 11, color: 'rgba(255,255,255,0.35)',
-                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-              }}>
-                {truncate(ride.pickupLabel, 22)}
-              </div>
-            </div>
-
-            {/* Flèche centrale */}
+            {/* Date + Heure */}
             <div style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0,
+              display: 'flex', justifyContent: 'space-between',
+              alignItems: 'center', marginBottom: 18,
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <div style={{ width: 24, height: 1, background: 'rgba(255,255,255,0.20)' }} />
-                <div style={{
-                  width: 28, height: 28, borderRadius: 9999,
-                  background: 'rgba(255,255,255,0.06)',
-                  border: '1px solid rgba(255,255,255,0.10)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <Navigation size={12} color="rgba(255,255,255,0.60)" strokeWidth={2} />
-                </div>
-                <div style={{ width: 24, height: 1, background: 'rgba(255,255,255,0.20)' }} />
-              </div>
-              {ride.vehicleType && (
+              {shortDate && (
                 <span style={{
                   fontFamily: "'DM Sans', system-ui, sans-serif",
-                  fontSize: 9, color: 'rgba(255,255,255,0.25)',
-                  marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.04em',
+                  fontSize: 12, fontWeight: 500,
+                  color: 'rgba(255,255,255,0.40)',
+                  textTransform: 'capitalize', letterSpacing: '0.01em',
                 }}>
-                  {ride.vehicleType}
+                  {shortDate}
+                </span>
+              )}
+              {date.timeLabel !== 'Maintenant' && (
+                <span style={{
+                  fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+                  fontSize: 14, fontWeight: 800,
+                  color: 'rgba(255,255,255,0.85)',
+                  letterSpacing: '-0.02em',
+                }}>
+                  {date.timeLabel}
                 </span>
               )}
             </div>
 
-            {/* Arrivée */}
-            <div style={{ flex: 1, minWidth: 0, textAlign: 'right' }}>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 5,
-                justifyContent: 'flex-end', marginBottom: 3,
-              }}>
-                <span style={{
+            {/* Trajet */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr auto 1fr',
+              alignItems: 'center', gap: 10,
+            }}>
+              <div>
+                <p style={{
                   fontFamily: "'DM Sans', system-ui, sans-serif",
-                  fontSize: 10, color: 'rgba(255,255,255,0.35)',
-                  textTransform: 'uppercase', letterSpacing: '0.06em',
+                  fontSize: 9, fontWeight: 700, letterSpacing: '0.12em',
+                  textTransform: 'uppercase', color: 'rgba(255,255,255,0.20)',
+                  marginBottom: 5,
+                }}>Départ</p>
+                <p style={{
+                  fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+                  fontWeight: 800, fontSize: 16, letterSpacing: '-0.025em',
+                  color: '#ffffff', lineHeight: 1.1,
+                }}>{pickup}</p>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                <div style={{ width: 14, height: 1, background: 'rgba(255,255,255,0.14)' }} />
+                <div style={{
+                  width: 22, height: 22, borderRadius: 9999,
+                  background: 'rgba(255,255,255,0.06)',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  Arrivée
-                </span>
-                <Navigation size={11} color="rgba(255,255,255,0.35)" strokeWidth={2} />
+                  <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+                    <path d="M1 4.5h7M5.5 2.5l2 2-2 2" stroke="rgba(255,255,255,0.45)" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <div style={{ width: 14, height: 1, background: 'rgba(255,255,255,0.14)' }} />
               </div>
-              <div style={{
-                fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
-                fontWeight: 700, fontSize: 16,
-                color: '#ffffff', letterSpacing: '-0.02em',
-                lineHeight: 1.1, marginBottom: 2,
-              }}>
-                {truncate(ride.dropoffCity, 12)}
-              </div>
-              <div style={{
-                fontFamily: "'DM Sans', system-ui, sans-serif",
-                fontSize: 11, color: 'rgba(255,255,255,0.35)',
-                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-              }}>
-                {truncate(ride.dropoffLabel, 22)}
+
+              <div style={{ textAlign: 'right' }}>
+                <p style={{
+                  fontFamily: "'DM Sans', system-ui, sans-serif",
+                  fontSize: 9, fontWeight: 700, letterSpacing: '0.12em',
+                  textTransform: 'uppercase', color: 'rgba(255,255,255,0.20)',
+                  marginBottom: 5,
+                }}>Arrivée</p>
+                <p style={{
+                  fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+                  fontWeight: 800, fontSize: 16, letterSpacing: '-0.025em',
+                  color: '#ffffff', lineHeight: 1.1,
+                }}>{dropoff}</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Divider style boarding pass */}
-        <div className="ride-card-divider" />
-
-        {/* Footer */}
+        {/* ── Perforation ── */}
         <div style={{
-          padding: '12px 20px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          position: 'relative',
+          height: 16,
+          background: `
+            linear-gradient(125deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%),
+            linear-gradient(160deg, #191c28 0%, #111320 100%)
+          `,
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderTop: 'none', borderBottom: 'none',
+          display: 'flex', alignItems: 'center',
         }}>
           <div style={{
-            fontFamily: "'DM Sans', system-ui, sans-serif",
-            fontSize: 12, color: 'rgba(255,255,255,0.30)',
-          }}>
-            {date.month && `${date.month} ${new Date(ride.scheduledAt!).getFullYear()}`}
-          </div>
+            position: 'absolute', left: -9, top: '50%', transform: 'translateY(-50%)',
+            width: 18, height: 18, borderRadius: 9999,
+            background: '#07090f',
+            boxShadow: 'inset 3px 0 5px rgba(0,0,0,0.6)',
+          }} />
+          <div style={{
+            flex: 1, margin: '0 6px', height: 1,
+            background: 'repeating-linear-gradient(90deg, rgba(255,255,255,0.18) 0px, rgba(255,255,255,0.18) 5px, transparent 5px, transparent 12px)',
+          }} />
+          <div style={{
+            position: 'absolute', right: -9, top: '50%', transform: 'translateY(-50%)',
+            width: 18, height: 18, borderRadius: 9999,
+            background: '#07090f',
+            boxShadow: 'inset -3px 0 5px rgba(0,0,0,0.6)',
+          }} />
+        </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            {ride.price != null && (
-              <span style={{
+        {/* ── Talon prix ── */}
+        <div className="rc-stub">
+          <div style={{
+            padding: '13px 20px 15px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            position: 'relative', zIndex: 1,
+          }}>
+            <div>
+              <p style={{
+                fontFamily: "'DM Sans', system-ui, sans-serif",
+                fontSize: 9, fontWeight: 700, letterSpacing: '0.12em',
+                textTransform: 'uppercase', color: 'rgba(255,255,255,0.18)',
+                marginBottom: 3,
+              }}>Total</p>
+              <p style={{
                 fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
-                fontWeight: 700, fontSize: 15, color: '#ffffff',
-                letterSpacing: '-0.02em',
+                fontWeight: 800, fontSize: 20, letterSpacing: '-0.03em',
+                color: '#ffffff',
+                textShadow: '0 1px 6px rgba(255,255,255,0.10)',
               }}>
-                {ride.price}€
-              </span>
-            )}
-            <ChevronRight size={14} color="rgba(255,255,255,0.25)" />
+                {ride.price != null && ride.price > 0 ? `${ride.price} €` : 'Sur devis'}
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: 2.5, alignItems: 'center' }}>
+              {[12, 18, 22, 18, 12].map((h, i) => (
+                <div key={i} style={{
+                  width: 2, height: h, borderRadius: 2,
+                  background: `rgba(255,255,255,${0.05 + i * 0.025})`,
+                }} />
+              ))}
+            </div>
           </div>
         </div>
 
       </div>
-
-      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
     </>
   )
 }

@@ -1,0 +1,144 @@
+-- ============================================================
+-- Migration complète — AD Transport
+-- Supprime tout et repart proprement
+-- ============================================================
+
+-- ── 1. Suppression dans l'ordre (FK d'abord) ──────────────
+DROP TABLE IF EXISTS booking_request_options CASCADE;
+DROP TABLE IF EXISTS booking_requests CASCADE;
+DROP TABLE IF EXISTS ride_options CASCADE;
+DROP TABLE IF EXISTS passengers CASCADE;
+
+-- On garde users mais on la nettoie
+ALTER TABLE public.users
+  ADD COLUMN IF NOT EXISTS role text NOT NULL DEFAULT 'client';
+
+-- ── 2. Catalogue des options de course ────────────────────
+CREATE TABLE public.ride_options (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  code          text UNIQUE NOT NULL,
+  name          text NOT NULL,
+  description   text,
+  icon          text,
+  price_type    text NOT NULL CHECK (price_type IN ('fixed', 'per_km', 'percentage')),
+  price_value   numeric NOT NULL DEFAULT 0,
+  is_active     boolean NOT NULL DEFAULT true,
+  display_order int NOT NULL DEFAULT 0,
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  updated_at    timestamptz NOT NULL DEFAULT now()
+);
+
+-- ── 3. Passagers sauvegardés par un client ────────────────
+-- Un client peut enregistrer ses proches pour réserver à leur place
+CREATE TABLE public.passengers (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  first_name  text NOT NULL,
+  last_name   text NOT NULL,
+  phone       text NOT NULL,
+  note        text,              -- ex: "Ma mère", "Mon collègue"
+  is_default  boolean NOT NULL DEFAULT false,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now()
+);
+
+-- ── 4. Courses (bookings) ─────────────────────────────────
+CREATE TABLE public.bookings (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+
+  -- Qui réserve
+  booker_id       uuid REFERENCES public.users(id) ON DELETE SET NULL,
+
+  -- Pour qui (null = pour soi-même)
+  passenger_id    uuid REFERENCES public.passengers(id) ON DELETE SET NULL,
+
+  -- Si pas de passager enregistré → infos saisies manuellement
+  passenger_name  text,
+  passenger_phone text,
+
+  -- Trajet
+  pickup_address  text NOT NULL,
+  dropoff_address text NOT NULL,
+  pickup_lat      numeric,
+  pickup_lng      numeric,
+  dropoff_lat     numeric,
+  dropoff_lng     numeric,
+
+  -- Horaire (null = maintenant)
+  scheduled_at    timestamptz,
+
+  -- Notes client
+  notes           text,
+
+  -- Prix
+  estimated_price  numeric,        -- estimé au moment de la réservation
+  driver_price     numeric,        -- défini par le conducteur à l'acceptation
+
+  -- Statut
+  status          text NOT NULL DEFAULT 'pending'
+    CHECK (status IN (
+      'pending',      -- en attente de validation conducteur
+      'accepted',     -- acceptée par le conducteur
+      'in_progress',  -- course en cours
+      'completed',    -- terminée
+      'cancelled'     -- annulée
+    )),
+
+  -- Conducteur assigné
+  driver_id       uuid REFERENCES public.users(id) ON DELETE SET NULL,
+
+  -- Métadonnées
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  updated_at      timestamptz NOT NULL DEFAULT now()
+);
+
+-- ── 5. Options choisies pour une course ──────────────────
+CREATE TABLE public.booking_options (
+  id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  booking_id        uuid NOT NULL REFERENCES public.bookings(id) ON DELETE CASCADE,
+  ride_option_id    uuid NOT NULL REFERENCES public.ride_options(id),
+  -- Snapshot au moment de la réservation (le prix peut changer)
+  option_code       text NOT NULL,
+  option_name       text NOT NULL,
+  price_type        text NOT NULL,
+  price_value       numeric NOT NULL,
+  quantity          int NOT NULL DEFAULT 1,
+  created_at        timestamptz NOT NULL DEFAULT now()
+);
+
+-- ── 6. Index utiles ───────────────────────────────────────
+CREATE INDEX idx_bookings_booker    ON public.bookings(booker_id);
+CREATE INDEX idx_bookings_driver    ON public.bookings(driver_id);
+CREATE INDEX idx_bookings_status    ON public.bookings(status);
+CREATE INDEX idx_bookings_scheduled ON public.bookings(scheduled_at);
+CREATE INDEX idx_passengers_user    ON public.passengers(user_id);
+
+-- ── 7. Trigger updated_at ────────────────────────────────
+CREATE OR REPLACE FUNCTION public.set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER bookings_updated_at
+  BEFORE UPDATE ON public.bookings
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE TRIGGER passengers_updated_at
+  BEFORE UPDATE ON public.passengers
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- ── 8. RLS (désactivé en dev, à activer en prod) ─────────
+ALTER TABLE public.bookings      DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.passengers    DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ride_options  DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.booking_options DISABLE ROW LEVEL SECURITY;
+
+-- ── 9. Données de test ───────────────────────────────────
+INSERT INTO public.ride_options (code, name, description, price_type, price_value, display_order) VALUES
+  ('baby_seat',    'Siège bébé',      'Siège adapté aux enfants en bas âge', 'fixed',      5,  1),
+  ('pet',          'Animal de compagnie', 'Transport avec animal',            'fixed',      10, 2),
+  ('extra_luggage','Bagages extra',   'Valise supplémentaire grande taille', 'fixed',      5,  3),
+  ('meet_greet',   'Meet & Greet',    'Accueil avec panneau nominatif',      'fixed',      15, 4);

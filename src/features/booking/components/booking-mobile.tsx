@@ -69,15 +69,15 @@ export function BookingMobile() {
           position: 'relative', display: 'flex', alignItems: 'center',
           height: 44, marginBottom: 40,
         }}>
-          <Link href="/" style={{
+          <button onClick={() => router.back()} style={{
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
             width: 36, height: 36, borderRadius: 999,
             background: 'rgba(255,255,255,0.07)',
             border: '1px solid rgba(255,255,255,0.09)',
-            color: 'rgba(255,255,255,0.80)', textDecoration: 'none', flexShrink: 0,
+            color: 'rgba(255,255,255,0.80)', cursor: 'pointer', flexShrink: 0,
           }}>
             <ArrowLeft size={18} strokeWidth={2} />
-          </Link>
+          </button>
           <span style={{
             position: 'absolute', left: '50%', transform: 'translateX(-50%)',
             fontFamily: "'DM Sans', system-ui, sans-serif",

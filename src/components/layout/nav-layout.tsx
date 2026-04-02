@@ -5,10 +5,11 @@ import { TopNav } from './top-nav'
 import { BottomNav } from './bottom-nav'
 
 /* Pages sans top nav desktop (elles ont leur propre header intégré) */
-const NO_TOP_NAV = ['/', '/login', '/inscription', '/mot-de-passe-oublie', '/reserver', '/services']
+/* Toutes les pages qui ont leur propre header intégré — pas de TopNav dessus */
+const NO_TOP_NAV = ['/', '/login', '/inscription', '/mot-de-passe-oublie', '/reserver', '/services', '/conducteur']
 
 /* Pages sans bottom nav mobile */
-const NO_BOTTOM_NAV = ['/login', '/inscription', '/mot-de-passe-oublie']
+const NO_BOTTOM_NAV = ['/login', '/inscription', '/mot-de-passe-oublie', '/conducteur']
 
 export function NavLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
