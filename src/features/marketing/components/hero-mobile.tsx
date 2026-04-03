@@ -7,9 +7,9 @@ import { AuthButton } from '@/features/auth/components/auth-button'
 import { LocationInputs } from './location-inputs'
 
 const UI_DELAY   = 800
-const SPEED      = 0.95
+const SPEED      = 0.5
 const FADE_MS    = 800   // durée du cross-fade
-const PRELOAD_S  = 0.5     // secondes avant la fin de l'intro où on lance le loop
+const PRELOAD_S  = 2     // secondes avant la fin de l'intro où on lance le loop
 
 export function HeroMobile() {
   const introRef = useRef<HTMLVideoElement>(null)
@@ -83,7 +83,7 @@ export function HeroMobile() {
           poster="/videos/intro-poster.jpg"
           style={{
             position: 'absolute', inset: 0,
-            width: '100%', height: '100%', objectFit: 'cover',
+            width: '100%', height: '100%', objectFit: 'contain',
             zIndex: 2,
             opacity: showLoop ? 0 : 1,
             transition: `opacity ${FADE_MS}ms ease`,
@@ -98,7 +98,7 @@ export function HeroMobile() {
           preload="none"
           style={{
             position: 'absolute', inset: 0,
-            width: '100%', height: '100%', objectFit: 'cover',
+            width: '100%', height: '100%', objectFit: 'contain',
             zIndex: 1,
           }}
         />
