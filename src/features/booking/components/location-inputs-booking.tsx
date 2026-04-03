@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { MapPin, Navigation, ArrowUpDown } from 'lucide-react'
+import { MapPin, Navigation, ArrowUpDown, Check } from 'lucide-react'
 import { LocationSearch } from '@/features/locations/components/location-search'
 import type { Location } from '@/features/locations/types/location.types'
 
@@ -20,18 +20,19 @@ export function LocationInputsBooking({
   externalPickup,
   externalDestination,
 }: LocationInputsBookingProps) {
-  const [pickupLabel, setPickupLabel]           = useState('')
+  const [pickupLabel,      setPickupLabel]      = useState('')
   const [destinationLabel, setDestinationLabel] = useState('')
 
-  /* Labels affichés : priorité à la location externe (clic carte) */
   const displayPickup      = externalPickup?.label      ?? pickupLabel
   const displayDestination = externalDestination?.label ?? destinationLabel
+
+  const pickupDone      = !!(externalPickup      || pickupLabel.length > 3)
+  const destinationDone = !!(externalDestination || destinationLabel.length > 3)
 
   function handleSwap() {
     const tempLabel = pickupLabel
     setPickupLabel(destinationLabel)
     setDestinationLabel(tempLabel)
-
     if (externalPickup && externalDestination) {
       onPickupSelect?.(externalDestination)
       onDestinationSelect?.(externalPickup)
@@ -39,7 +40,11 @@ export function LocationInputsBooking({
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
+    <div style={{
+      display: 'flex', flexDirection: 'column', position: 'relative',
+      borderRadius: 16, overflow: 'hidden',
+      border: '1px solid rgba(255,255,255,0.08)',
+    }}>
       <style>{`
         .swap-btn {
           display: flex; align-items: center; justify-content: center;
@@ -50,7 +55,17 @@ export function LocationInputsBooking({
           cursor: pointer; transition: all 150ms ease;
         }
         .swap-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+        .loc-done-bar {
+          height: 2px;
+          transition: background 300ms ease;
+        }
       `}</style>
+
+      {/* Liseré haut — pickup */}
+      <div
+        className="loc-done-bar"
+        style={{ background: pickupDone ? '#91E2FF' : 'transparent' }}
+      />
 
       {/* Pickup */}
       <LocationSearch
@@ -59,7 +74,10 @@ export function LocationInputsBooking({
         onChange={setPickupLabel}
         onSelect={loc => { setPickupLabel(loc.label); onPickupSelect?.(loc) }}
         onMapPickRequest={() => onMapPickRequest?.('pickup')}
-        icon={<MapPin size={15} />}
+        icon={pickupDone
+          ? <Check size={15} color="#91E2FF" strokeWidth={2.5} />
+          : <MapPin size={15} />
+        }
         autoFocus
       />
 
@@ -85,7 +103,16 @@ export function LocationInputsBooking({
         onChange={setDestinationLabel}
         onSelect={loc => { setDestinationLabel(loc.label); onDestinationSelect?.(loc) }}
         onMapPickRequest={() => onMapPickRequest?.('destination')}
-        icon={<Navigation size={15} />}
+        icon={destinationDone
+          ? <Check size={15} color="#91E2FF" strokeWidth={2.5} />
+          : <Navigation size={15} />
+        }
+      />
+
+      {/* Liseré bas — destination */}
+      <div
+        className="loc-done-bar"
+        style={{ background: destinationDone ? '#91E2FF' : 'transparent' }}
       />
     </div>
   )

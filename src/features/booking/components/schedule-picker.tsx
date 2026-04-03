@@ -115,26 +115,27 @@ export function SchedulePicker({ value, onChange, error }: SchedulePickerProps) 
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '12px 14px',
-          background: 'rgba(255,255,255,0.06)',
-          border: '1px solid rgba(255,255,255,0.12)',
+          background: 'rgba(145,226,255,0.12)',
+          border: '1px solid rgba(145,226,255,0.35)',
           borderRadius: 12,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Calendar size={14} color="rgba(255,255,255,0.5)" />
+            <Calendar size={14} color="#91E2FF" />
             <span style={{
               fontFamily: "'DM Sans', system-ui, sans-serif",
-              fontSize: 13, fontWeight: 500, color: '#ffffff',
+              fontSize: 13, fontWeight: 600, color: '#07090f',
+              background: '#91E2FF',
+              padding: '2px 10px', borderRadius: 9999,
             }}>
               {formatSummary(value)}
             </span>
           </div>
-          {/* Bouton modifier */}
           <button
             onClick={() => setStep(step === 'closed' ? 'calendar' : 'closed')}
             style={{
               display: 'flex', alignItems: 'center', gap: 5,
               background: 'none', border: 'none', cursor: 'pointer',
-              color: 'rgba(255,255,255,0.38)', fontSize: 12,
+              color: 'rgba(145,226,255,0.70)', fontSize: 12,
               fontFamily: "'DM Sans', system-ui, sans-serif",
               transition: 'color 150ms ease', padding: '2px 6px',
             }}
