@@ -1,10 +1,8 @@
-// admin.ts
 import { createClient } from "@supabase/supabase-js";
-import { env } from "@/lib/env/env";
 
 export function createSupabaseAdminClient() {
   return createClient(
-    env.NEXT_PUBLIC_SUPABASE_URL,
-    env.SUPABASE_SERVICE_ROLE_KEY
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 }
