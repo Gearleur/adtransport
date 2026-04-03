@@ -8,7 +8,7 @@ import { AuthInput } from './auth-input'
 import { useSearchParams } from 'next/navigation'
 import { useLoginForm } from '../hooks/use-auth-form'
 
-const PHONE_NUMBER = '+33 6 00 00 00 00' // ← à remplacer
+const PHONE_NUMBER = '+33 6 08 70 26 83' // ← à remplacer
 
 export function LoginForm() {
   const { form, errors, serverError, isLoading, handleChange, handleSubmit } = useLoginForm()
