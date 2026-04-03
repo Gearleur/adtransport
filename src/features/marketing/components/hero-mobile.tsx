@@ -83,11 +83,10 @@ export function HeroMobile() {
           poster="/videos/intro-poster.jpg"
           style={{
             position: 'absolute', inset: 0,
-            width: '100%', height: '100%', objectFit: 'contain',
+            width: '100%', height: '100%', objectFit: 'cover',
             zIndex: 2,
             opacity: showLoop ? 0 : 1,
-            transform: showLoop ? 'scale(1.5)' : 'scale(2)',
-            transition: `opacity ${FADE_MS}ms ease, transform ${FADE_MS}ms ease`,
+            transition: `opacity ${FADE_MS}ms ease`,
           }}
         />
 
@@ -99,9 +98,8 @@ export function HeroMobile() {
           preload="none"
           style={{
             position: 'absolute', inset: 0,
-            width: '100%', height: '100%', objectFit: 'contain',
+            width: '100%', height: '100%', objectFit: 'cover',
             zIndex: 1,
-            transform: 'scale(1.5)',
           }}
         />
 
