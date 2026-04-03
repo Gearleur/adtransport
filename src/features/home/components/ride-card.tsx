@@ -29,12 +29,25 @@ const STATUS: Record<RideStatus, { label: string; glow: string; text: string; ba
 
 function shortAddress(full: string): string {
   const parts = full.split(',').map(p => p.trim())
-  /* Nominatim place le numéro seul en premier segment
-     ex: "5, Rue Charles Faroux, Paris" → on recolle numéro + rue */
   if (parts.length > 1 && /^\d+$/.test(parts[0])) {
     return `${parts[0]} ${parts[1]}`
   }
   return parts[0] ?? full
+}
+
+function cityFromAddress(full: string): string | null {
+  const parts = full.split(',').map(p => p.trim())
+  /* Format Nominatim: "5 Rue X, 75000, Paris, France"
+     ou "Lieu, 75000, Paris, France" */
+  // Cherche un segment qui ressemble à une ville (pas un code postal, pas "France")
+  for (let i = 1; i < parts.length; i++) {
+    const p = parts[i]
+    if (/^\d{4,5}$/.test(p)) continue  // code postal
+    if (p.toLowerCase() === 'france') continue
+    if (p.length < 2) continue
+    return p
+  }
+  return null
 }
 
 export function RideCard({ ride }: { ride: RideCardData }) {
@@ -197,6 +210,13 @@ export function RideCard({ ride }: { ride: RideCardData }) {
                   fontWeight: 800, fontSize: 16, letterSpacing: '-0.025em',
                   color: '#ffffff', lineHeight: 1.1,
                 }}>{pickup}</p>
+                {cityFromAddress(ride.pickupLabel) && (
+                  <p style={{
+                    fontFamily: "'DM Sans', system-ui, sans-serif",
+                    fontSize: 11, color: 'rgba(255,255,255,0.35)',
+                    marginTop: 3,
+                  }}>{cityFromAddress(ride.pickupLabel)}</p>
+                )}
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
@@ -227,6 +247,13 @@ export function RideCard({ ride }: { ride: RideCardData }) {
                   fontWeight: 800, fontSize: 16, letterSpacing: '-0.025em',
                   color: '#ffffff', lineHeight: 1.1,
                 }}>{dropoff}</p>
+                {cityFromAddress(ride.dropoffLabel) && (
+                  <p style={{
+                    fontFamily: "'DM Sans', system-ui, sans-serif",
+                    fontSize: 11, color: 'rgba(255,255,255,0.35)',
+                    marginTop: 3, textAlign: 'right',
+                  }}>{cityFromAddress(ride.dropoffLabel)}</p>
+                )}
               </div>
             </div>
           </div>
