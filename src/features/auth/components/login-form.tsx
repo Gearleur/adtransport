@@ -8,7 +8,7 @@ import { AuthInput } from './auth-input'
 import { useSearchParams } from 'next/navigation'
 import { useLoginForm } from '../hooks/use-auth-form'
 
-const PHONE_NUMBER = '+33 6 08 70 26 83' // ← à remplacer
+const PHONE_NUMBER = '+33 6 00 00 00 00' // ← à remplacer
 
 export function LoginForm() {
   const { form, errors, serverError, isLoading, handleChange, handleSubmit } = useLoginForm()
@@ -26,19 +26,29 @@ export function LoginForm() {
 
       {/* ── MOBILE ── */}
       <div className="login-mobile" style={{ flexDirection: 'column', width: '100%' }}>
-        <Link href="/" style={{
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          width: 36, height: 36, borderRadius: 999,
-          background: 'rgba(255,255,255,0.07)',
-          border: '1px solid rgba(255,255,255,0.09)',
-          color: 'rgba(255,255,255,0.70)',
-          textDecoration: 'none', marginBottom: 32,
-        }}>
-          <ArrowLeft size={16} strokeWidth={2} />
-        </Link>
 
-        <div style={{ marginBottom: 32 }}>
-          <div style={{ marginBottom: 20 }}><Logo size="md" /></div>
+        {/* Header : flèche + logo + téléphone */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          marginBottom: 32,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <Link href="/" style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              width: 36, height: 36, borderRadius: 999,
+              background: 'rgba(255,255,255,0.07)',
+              border: '1px solid rgba(255,255,255,0.09)',
+              color: 'rgba(255,255,255,0.70)',
+              textDecoration: 'none', flexShrink: 0,
+            }}>
+              <ArrowLeft size={16} strokeWidth={2} />
+            </Link>
+            <Logo size="md" />
+          </div>
+          <PhoneChip />
+        </div>
+
+        <div style={{ marginBottom: 32, marginTop: 24 }}>
           <h1 style={{
             fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
             fontWeight: 800, fontSize: 26, color: '#ffffff',
@@ -54,23 +64,25 @@ export function LoginForm() {
           form={form} errors={errors} serverError={serverError}
           isLoading={isLoading} handleChange={handleChange} handleSubmit={handleSubmit}
         />
-        <PhoneBlock />
       </div>
 
       {/* ── DESKTOP ── */}
       <div className="login-desktop" style={{ flexDirection: 'column', width: '100%', maxWidth: 380 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 40 }}>
-          <Link href="/" style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            width: 36, height: 36, borderRadius: 999,
-            background: 'rgba(255,255,255,0.07)',
-            border: '1px solid rgba(255,255,255,0.09)',
-            color: 'rgba(255,255,255,0.70)',
-            textDecoration: 'none', flexShrink: 0,
-          }}>
-            <ArrowLeft size={16} strokeWidth={2} />
-          </Link>
-          <Logo size="md" />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 40 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <Link href="/" style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              width: 36, height: 36, borderRadius: 999,
+              background: 'rgba(255,255,255,0.07)',
+              border: '1px solid rgba(255,255,255,0.09)',
+              color: 'rgba(255,255,255,0.70)',
+              textDecoration: 'none', flexShrink: 0,
+            }}>
+              <ArrowLeft size={16} strokeWidth={2} />
+            </Link>
+            <Logo size="md" />
+          </div>
+          <PhoneChip />
         </div>
 
         <div style={{ marginBottom: 32 }}>
@@ -89,7 +101,6 @@ export function LoginForm() {
           form={form} errors={errors} serverError={serverError}
           isLoading={isLoading} handleChange={handleChange} handleSubmit={handleSubmit}
         />
-        <PhoneBlock />
       </div>
     </>
   )
@@ -166,48 +177,33 @@ function SharedForm({ form, errors, serverError, isLoading, handleChange, handle
   )
 }
 
-function PhoneBlock() {
+function PhoneChip() {
   return (
-    <div style={{
-      marginTop: 28,
-      padding: '14px 16px',
-      background: 'rgba(255,255,255,0.03)',
-      border: '1px solid rgba(255,255,255,0.08)',
-      borderRadius: 14,
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
-    }}>
-      <div>
-        <p style={{
-          fontFamily: "'DM Sans', system-ui, sans-serif",
-          fontSize: 11, fontWeight: 600,
-          color: 'rgba(255,255,255,0.28)',
-          letterSpacing: '0.07em', textTransform: 'uppercase',
-          marginBottom: 3,
-        }}>
-          Réserver par téléphone
-        </p>
-        <p style={{
-          fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
-          fontSize: 15, fontWeight: 700, color: '#ffffff',
-          letterSpacing: '-0.01em',
-        }}>
-          {PHONE_NUMBER}
-        </p>
-      </div>
+    <>
+      <style>{`
+        .phone-label { display: inline; }
+        @media (max-width: 400px) { .phone-label { display: none; } }
+      `}</style>
       <a
         href={`tel:${PHONE_NUMBER.replace(/\s/g, '')}`}
         style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          width: 40, height: 40, borderRadius: 9999, flexShrink: 0,
-          background: 'rgba(255,255,255,0.10)',
-          border: '1px solid rgba(255,255,255,0.15)',
-          color: '#ffffff', textDecoration: 'none',
-          transition: 'all 150ms ease',
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          padding: '6px 10px', borderRadius: 9999, flexShrink: 0,
+          background: 'rgba(74,222,128,0.08)',
+          border: '1px solid rgba(74,222,128,0.20)',
+          textDecoration: 'none',
         }}
       >
-        <Phone size={16} strokeWidth={2} />
+        <Phone size={13} color="#4ade80" strokeWidth={2.5} />
+        <span className="phone-label" style={{
+          fontFamily: "'DM Sans', system-ui, sans-serif",
+          fontSize: 12, fontWeight: 600, color: '#4ade80',
+          letterSpacing: '0.01em', whiteSpace: 'nowrap',
+        }}>
+          {PHONE_NUMBER}
+        </span>
       </a>
-    </div>
+    </>
   )
 }
 

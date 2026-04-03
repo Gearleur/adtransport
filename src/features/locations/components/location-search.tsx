@@ -40,6 +40,14 @@ export function LocationSearch({
   const debounceRef                   = useRef<ReturnType<typeof setTimeout>>(null)
   const inputRef                      = useRef<HTMLInputElement>(null)
 
+  /* autoFocus via useEffect pour éviter les problèmes d'hydratation */
+  useEffect(() => {
+    if (autoFocus) {
+      const t = setTimeout(() => inputRef.current?.focus(), 100)
+      return () => clearTimeout(t)
+    }
+  }, [autoFocus])
+
   /* ── Suggestions fixes (toujours présentes quand focus) ── */
   const fixedSuggestions: Suggestion[] = [
     { type: 'geolocation', label: 'Utiliser ma position',   sublabel: 'Position actuelle' },
@@ -51,13 +59,13 @@ export function LocationSearch({
     onChange(val)
     if (debounceRef.current) clearTimeout(debounceRef.current)
 
-    if (val.length < 2) {
+    if (val.length < 3) {
       setSuggestions([])
       return
     }
 
     setLoading(true)
-    debounceRef.current = setTimeout(async () => {
+    debounceRef.current = setTimeout(async () => { /* debounce 400ms */
       const results = await searchAddress(val)
       setSuggestions(results.map(loc => ({
         type:     'result',
@@ -66,7 +74,7 @@ export function LocationSearch({
         location: loc,
       })))
       setLoading(false)
-    }, 350)
+    }, 400)
   }, [onChange])
 
   /* ── Géolocalisation ── */
@@ -165,7 +173,7 @@ export function LocationSearch({
           className="loc-search-input"
           placeholder={placeholder}
           value={value}
-          autoFocus={autoFocus}
+          /* autoFocus géré via useEffect */
           onChange={e => handleInput(e.target.value)}
           onFocus={() => setOpen(true)}
         />

@@ -59,11 +59,46 @@ export async function searchAddress(
 ): Promise<(Location & { sublabel?: string })[]> {
   if (!query || query.length < 2) return []
 
+  const words = query.trim().split(/\s+/)
+
+  /* Requête sans le dernier mot — utile quand l'utilisateur
+     tape le début d'un nom de ville ("vill" au lieu de "Villemomble") */
+  const withoutLastWord = words.length > 2 ? words.slice(0, -1).join(' ') : null
+
+  /* Lance les deux requêtes en parallèle */
+  const [full, partial] = await Promise.all([
+    searchNominatim(query),
+    withoutLastWord ? searchNominatim(withoutLastWord) : Promise.resolve([]),
+  ])
+
+  /* Déduplique par placeId et fusionne — les résultats complets en premier */
+  const seen = new Set<string>()
+  const merged: (Location & { sublabel?: string })[] = []
+
+  for (const r of [...full, ...partial]) {
+    const key = r.placeId ?? r.label
+    if (!seen.has(key)) {
+      seen.add(key)
+      merged.push(r)
+    }
+  }
+
+  /* Si toujours rien, ajoute "France" en dernier recours */
+  if (merged.length === 0 && !query.toLowerCase().includes('france')) {
+    return searchNominatim(`${query}, France`)
+  }
+
+  return merged.slice(0, 5)
+}
+
+async function searchNominatim(
+  query: string,
+): Promise<(Location & { sublabel?: string })[]> {
   const params = new URLSearchParams({
     q:              query,
     format:         'json',
     addressdetails: '1',
-    limit:          '5',
+    limit:          '6',
     countrycodes:   'fr',
     dedupe:         '1',
   })
@@ -77,8 +112,8 @@ export async function searchAddress(
       const fullAddress = buildFullAddress(item)
 
       return {
-        label:    fullAddress,   // ← adresse complète stockée
-        sublabel: `${label} — ${sublabel}`,
+        label:    fullAddress,
+        sublabel: `${label}${sublabel ? ` — ${sublabel}` : ''}`,
         lat:      parseFloat(item.lat),
         lng:      parseFloat(item.lon),
         placeId:  item.place_id.toString(),

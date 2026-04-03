@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Calendar, Clock, ChevronDown, ChevronUp, Pencil } from 'lucide-react'
 import type { ScheduledDateTime } from '../types/booking.types'
 
@@ -260,26 +260,13 @@ export function SchedulePicker({ value, onChange, error }: SchedulePickerProps) 
                 </button>
               </div>
 
-              {/* Grille horaires */}
-              <div style={{
-                display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: 6, maxHeight: 200, overflowY: 'auto',
-              }}>
-                {TIME_SLOTS.map(time => {
-                  const isDisabled = selectedDate === todayISO &&
-                    time <= new Date().toTimeString().slice(0, 5)
-                  const isSel = value?.time === time && value?.date === selectedDate
-                  return (
-                    <button
-                      key={time}
-                      className={`time-slot${isSel ? ' selected' : isDisabled ? ' disabled' : ''}`}
-                      onClick={() => !isDisabled && handleTimeClick(time)}
-                    >
-                      {time}
-                    </button>
-                  )
-                })}
-              </div>
+              {/* Grille horaires — scroll auto vers 06:00 */}
+              <TimeGrid
+                todayISO={todayISO}
+                selectedDate={selectedDate}
+                value={value}
+                onSelect={handleTimeClick}
+              />
             </div>
           )}
 
@@ -295,6 +282,44 @@ export function SchedulePicker({ value, onChange, error }: SchedulePickerProps) 
           {error}
         </p>
       )}
+    </div>
+  )
+}
+
+function TimeGrid({ todayISO, selectedDate, value, onSelect }: {
+  todayISO: string
+  selectedDate: string | null
+  value: ScheduledDateTime | null
+  onSelect: (time: string) => void
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!scrollRef.current) return
+    const target = scrollRef.current.querySelector('[data-slot="06:00"]') as HTMLElement | null
+    if (target) target.scrollIntoView({ block: 'start', behavior: 'instant' })
+  }, [])
+
+  return (
+    <div ref={scrollRef} style={{
+      display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
+      gap: 6, maxHeight: 200, overflowY: 'auto',
+    }}>
+      {TIME_SLOTS.map(time => {
+        const isDisabled = selectedDate === todayISO &&
+          time <= new Date().toTimeString().slice(0, 5)
+        const isSel = value?.time === time && value?.date === selectedDate
+        return (
+          <button
+            key={time}
+            data-slot={time}
+            className={`time-slot${isSel ? ' selected' : isDisabled ? ' disabled' : ''}`}
+            onClick={() => !isDisabled && onSelect(time)}
+          >
+            {time}
+          </button>
+        )
+      })}
     </div>
   )
 }

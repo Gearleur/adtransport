@@ -66,11 +66,11 @@ export function LocationInputsBooking({
           cursor: pointer; transition: all 150ms ease;
         }
         .swap-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
-        .loc-done { outline: 1px solid rgba(145,226,255,0.30); border-radius: 0; transition: outline 300ms ease; }
+        .loc-done { outline: 1px solid rgba(145,226,255,0.30); border-radius: 14px; transition: outline 300ms ease; }
       `}</style>
 
       {/* Pickup */}
-      <div className={pickupDone ? 'loc-done' : ''}>
+      <div className={pickupDone ? 'loc-done' : ''} style={{ borderRadius: 14 }}>
         <LocationSearch
           placeholder="Lieu de prise en charge"
           value={displayPickup}
@@ -89,7 +89,7 @@ export function LocationInputsBooking({
       {/* Séparateur + swap */}
       <div style={{
         position: 'relative', height: 2,
-        background: 'rgba(255,255,255,0.06)', zIndex: 1,
+        background: 'transparent', zIndex: 1,
       }}>
         <div style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)' }}>
           <button className="swap-btn" onClick={handleSwap} title="Inverser">
@@ -99,7 +99,7 @@ export function LocationInputsBooking({
       </div>
 
       {/* Destination */}
-      <div className={destinationDone ? 'loc-done' : ''}>
+      <div className={destinationDone ? 'loc-done' : ''} style={{ borderRadius: 14 }}>
         <LocationSearch
           placeholder="Destination"
           value={displayDestination}
