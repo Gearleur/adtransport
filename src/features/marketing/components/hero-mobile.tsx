@@ -86,7 +86,7 @@ export function HeroMobile() {
             width: '100%', height: '100%', objectFit: 'contain',
             zIndex: 2,
             opacity: showLoop ? 0 : 1,
-            transform: showLoop ? 'scale(1.05)' : 'scale(1.12)',
+            transform: showLoop ? 'scale(1.5)' : 'scale(2)',
             transition: `opacity ${FADE_MS}ms ease, transform ${FADE_MS}ms ease`,
           }}
         />
@@ -101,7 +101,7 @@ export function HeroMobile() {
             position: 'absolute', inset: 0,
             width: '100%', height: '100%', objectFit: 'contain',
             zIndex: 1,
-            transform: 'scale(1.05)',
+            transform: 'scale(1.5)',
           }}
         />
 
