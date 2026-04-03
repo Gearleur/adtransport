@@ -12,7 +12,7 @@ import type { Booking } from '@/features/booking/types/booking.types'
    app/(booking)/reserver/confirmation/page.tsx
    ============================================================ */
 
-export default function ConfirmationPage() {
+function ConfirmationContent() {
   const searchParams          = useSearchParams()
   const router                = useRouter()
   const id                    = searchParams.get('id')
@@ -206,5 +206,20 @@ export default function ConfirmationPage() {
 
       </div>
     </div>
+  )
+}
+
+import { Suspense } from 'react'
+
+export default function ConfirmationPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ minHeight: '100dvh', background: '#07090f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 20, height: 20, borderRadius: 9999, border: '2px solid rgba(255,255,255,0.15)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    }>
+      <ConfirmationContent />
+    </Suspense>
   )
 }
