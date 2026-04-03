@@ -159,7 +159,7 @@ export default function ConfirmationPage() {
           </div>
 
           {/* Date si programmée */}
-          {booking.requested_at && (
+          {booking.scheduled_at && (
             <>
               <div style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />
               <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
@@ -182,9 +182,9 @@ export default function ConfirmationPage() {
                     fontFamily: "'DM Sans', system-ui, sans-serif",
                     fontSize: 14, fontWeight: 500, color: '#ffffff',
                   }}>
-                    {new Date(booking.requested_at).toLocaleDateString('fr-FR', {
+                    {new Date(booking.scheduled_at).toLocaleDateString('fr-FR', {
                       weekday: 'long', day: 'numeric', month: 'long',
-                    })} à {new Date(booking.requested_at).toLocaleTimeString('fr-FR', {
+                    })} à {new Date(booking.scheduled_at).toLocaleTimeString('fr-FR', {
                       hour: '2-digit', minute: '2-digit',
                     })}
                   </p>
@@ -197,7 +197,7 @@ export default function ConfirmationPage() {
         {/* Boutons */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <BtnPrimary href="/" fullWidth size="lg">
-            Retour à laccueil
+            Retour à l’accueil
           </BtnPrimary>
           <BtnSecondary href="/reserver" fullWidth size="md">
             Nouvelle réservation
