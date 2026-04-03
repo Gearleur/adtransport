@@ -1,11 +1,6 @@
 'use client'
 
-/* ============================================================
-   features/home/components/home-mobile.tsx
-   Version simplifiée — scroll + filtres par statut
-   ============================================================ */
-
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { Logo } from '@/components/branding/logo'
@@ -13,12 +8,11 @@ import { AuthButton } from '@/features/auth/components/auth-button'
 import { RideCard } from './ride-card'
 import type { RideCardData, RideStatus } from './ride-card'
 
-type Filter = 'upcoming' | 'pending' | 'past'
+type Filter = 'upcoming' | 'pending'
 
 const FILTERS: { key: Filter; label: string }[] = [
-  { key: 'upcoming', label: 'À venir'    },
-  { key: 'pending',  label: 'En attente de validation' },
-  { key: 'past',     label: 'Historique' },
+  { key: 'pending',  label: 'En attente'  },
+  { key: 'upcoming', label: 'À venir'     },
 ]
 
 interface HomeMobileProps {
@@ -27,7 +21,6 @@ interface HomeMobileProps {
   all:      RideCardData[]
 }
 
-/* Groupe les courses par mois */
 function groupByMonth(rides: RideCardData[]) {
   const groups: Record<string, RideCardData[]> = {}
   for (const r of rides) {
@@ -40,35 +33,41 @@ function groupByMonth(rides: RideCardData[]) {
   return groups
 }
 
-const STATUS_TO_FILTER: Record<RideStatus, Filter> = {
+const STATUS_TO_FILTER: Record<RideStatus, Filter | null> = {
   upcoming:    'upcoming',
   accepted:    'upcoming',
   in_progress: 'upcoming',
   pending:     'pending',
-  completed:   'past',
-  cancelled:   'past',
+  completed:   null,
+  cancelled:   null,
 }
 
 export function HomeMobile({ all }: HomeMobileProps) {
-  const [filter, setFilter] = useState<Filter>('upcoming')
-
-  const filtered = all
-    .filter(r => STATUS_TO_FILTER[r.status] === filter)
-    .sort((a, b) => {
-      if (!a.scheduledAt) return -1
-      if (!b.scheduledAt) return 1
-      const diff = new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
-      /* À venir : plus proche en premier (asc) — Historique : plus récent en premier (desc) */
-      return filter === 'past' ? -diff : diff
-    })
-  const groups   = groupByMonth(filtered)
-  const months   = Object.keys(groups)
-
   const counts: Record<Filter, number> = {
     upcoming: all.filter(r => STATUS_TO_FILTER[r.status] === 'upcoming').length,
     pending:  all.filter(r => STATUS_TO_FILTER[r.status] === 'pending').length,
-    past:     all.filter(r => STATUS_TO_FILTER[r.status] === 'past').length,
   }
+
+  /* Défaut : pending si y en a, sinon upcoming */
+  const [filter, setFilter] = useState<Filter>(
+    () => counts.pending > 0 ? 'pending' : 'upcoming'
+  )
+
+  /* Auto-switch : si on est sur pending mais plus de pending → derived filter */
+  const activeFilter: Filter = (filter === 'pending' && counts.pending === 0)
+    ? 'upcoming'
+    : filter
+
+  const filtered = all
+    .filter(r => STATUS_TO_FILTER[r.status] === activeFilter)
+    .sort((a, b) => {
+      if (!a.scheduledAt) return -1
+      if (!b.scheduledAt) return 1
+      return new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
+    })
+
+  const groups = groupByMonth(filtered)
+  const months = Object.keys(groups)
 
   return (
     <div style={{
@@ -119,11 +118,7 @@ export function HomeMobile({ all }: HomeMobileProps) {
         </div>
 
         {/* Filtres */}
-        <div style={{
-          display: 'flex', gap: 8, marginBottom: 28,
-          overflowX: 'auto', paddingBottom: 2,
-          scrollbarWidth: 'none',
-        }}>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 28 }}>
           <style>{`
             .filter-tab {
               display: inline-flex; align-items: center; gap: 6px;
@@ -133,35 +128,26 @@ export function HomeMobile({ all }: HomeMobileProps) {
               white-space: nowrap; flex-shrink: 0;
               transition: all 150ms ease;
             }
-            .filter-tab.active {
-              background: #ffffff; color: #07090f;
-            }
+            .filter-tab.active { background: #ffffff; color: #07090f; }
             .filter-tab.idle {
               background: rgba(255,255,255,0.06);
               color: rgba(255,255,255,0.50);
               outline: 1px solid rgba(255,255,255,0.08);
             }
-            .filter-tab.idle:hover {
-              background: rgba(255,255,255,0.10);
-              color: rgba(255,255,255,0.75);
-            }
+            .filter-tab.idle:hover { background: rgba(255,255,255,0.10); color: rgba(255,255,255,0.75); }
             .filter-count {
               display: inline-flex; align-items: center; justify-content: center;
               min-width: 18px; height: 18px; border-radius: 9999px;
               font-size: 10px; font-weight: 700; padding: 0 4px;
             }
-            .filter-tab.active .filter-count {
-              background: rgba(0,0,0,0.12); color: #07090f;
-            }
-            .filter-tab.idle .filter-count {
-              background: rgba(255,255,255,0.10); color: rgba(255,255,255,0.50);
-            }
+            .filter-tab.active .filter-count { background: rgba(0,0,0,0.12); color: #07090f; }
+            .filter-tab.idle   .filter-count { background: rgba(255,255,255,0.10); color: rgba(255,255,255,0.50); }
           `}</style>
 
           {FILTERS.map(f => (
             <button
               key={f.key}
-              className={`filter-tab ${filter === f.key ? 'active' : 'idle'}`}
+              className={`filter-tab ${activeFilter === f.key ? 'active' : 'idle'}`}
               onClick={() => setFilter(f.key)}
             >
               {f.label}
@@ -172,28 +158,21 @@ export function HomeMobile({ all }: HomeMobileProps) {
           ))}
         </div>
 
-        {/* Liste groupée par mois */}
+        {/* Liste */}
         {filtered.length === 0 ? (
-          <EmptyState filter={filter} />
+          <EmptyState filter={activeFilter} />
         ) : (
           months.map(month => (
             <div key={month} style={{ marginBottom: 32 }}>
-              {/* Header mois */}
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14,
-              }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
                 <span style={{
                   fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
                   fontWeight: 700, fontSize: 13, color: '#ffffff',
-                  letterSpacing: '-0.01em',
-                  textTransform: 'capitalize',
+                  letterSpacing: '-0.01em', textTransform: 'capitalize',
                 }}>
                   {month}
                 </span>
-                <div style={{
-                  flex: 1, height: 1,
-                  background: 'rgba(255,255,255,0.07)',
-                }} />
+                <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.07)' }} />
                 <span style={{
                   fontFamily: "'DM Sans', system-ui, sans-serif",
                   fontSize: 11, color: 'rgba(255,255,255,0.25)',
@@ -201,7 +180,6 @@ export function HomeMobile({ all }: HomeMobileProps) {
                   {groups[month].length} course{groups[month].length > 1 ? 's' : ''}
                 </span>
               </div>
-
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {groups[month].map(r => <RideCard key={r.id} ride={r} />)}
               </div>
@@ -217,22 +195,11 @@ function EmptyState({ filter }: { filter: Filter }) {
   const msgs: Record<Filter, string> = {
     upcoming: 'Aucune course à venir',
     pending:  'Aucune course en attente de validation',
-    past:     'Aucune course passée',
   }
   return (
-    <div style={{
-      padding: '48px 0 24px',
-      display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 16,
-    }}>
-      <div style={{
-        width: 40, height: 1,
-        background: 'rgba(255,255,255,0.10)',
-      }} />
-      <p style={{
-        fontFamily: "'DM Sans', system-ui, sans-serif",
-        fontSize: 14, color: 'rgba(255,255,255,0.25)',
-        lineHeight: 1.6,
-      }}>
+    <div style={{ padding: '48px 0 24px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 16 }}>
+      <div style={{ width: 40, height: 1, background: 'rgba(255,255,255,0.10)' }} />
+      <p style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 14, color: 'rgba(255,255,255,0.25)', lineHeight: 1.6 }}>
         {msgs[filter]}
       </p>
       {filter === 'upcoming' && (
