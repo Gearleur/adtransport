@@ -2,14 +2,6 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
-const PUBLIC_API_ROUTES = [
-  '/api/v1/health',
-  '/api/v1/ride-options',
-  '/api/v1/pricing/estimate',
-  '/api/v1/booking-requests',
-  '/api/v1/auth/logout',
-]
-
 function createSupabase(request: NextRequest, response: NextResponse) {
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -34,9 +26,7 @@ export async function proxy(request: NextRequest) {
   if (pathname.startsWith('/reserver')) {
     const response = NextResponse.next()
     const supabase = createSupabase(request, response)
-    const { data: { user }, error } = await supabase.auth.getUser()
-
-    console.log('[proxy] /reserver - user:', user?.email ?? 'null', 'error:', error?.message ?? 'none')
+    const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
       const loginUrl = new URL('/login', request.url)
@@ -47,7 +37,7 @@ export async function proxy(request: NextRequest) {
     return response
   }
 
-  /* ── Protection /home — redirige owner vers /conducteur ── */
+  /* ── Protection /home et /profil — redirige owner vers /conducteur ── */
   if (pathname.startsWith('/home') || pathname.startsWith('/profil')) {
     const response = NextResponse.next()
     const supabase = createSupabase(request, response)
@@ -86,8 +76,6 @@ export async function proxy(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    console.log('[proxy] /conducteur - user:', user.email, 'role:', profile?.role ?? 'none')
-
     if (profile?.role !== 'owner') {
       return NextResponse.redirect(new URL('/', request.url))
     }
@@ -95,15 +83,9 @@ export async function proxy(request: NextRequest) {
     return response
   }
 
-  /* ── Protection routes API ── */
-  if (!pathname.startsWith('/api/v1')) return NextResponse.next()
-  if (PUBLIC_API_ROUTES.includes(pathname))  return NextResponse.next()
-
-  if (pathname === '/api/auth/logout') return NextResponse.next()
-
-  const apiKey = request.headers.get('x-api-key')
-  if (!apiKey || apiKey !== process.env.INTERNAL_API_KEY) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  /* ── Route logout — toujours accessible ── */
+  if (pathname.startsWith('/api/v1/auth/logout')) {
+    return NextResponse.next()
   }
 
   return NextResponse.next()
@@ -115,6 +97,6 @@ export const config = {
     '/conducteur/:path*', '/conducteur',
     '/home/:path*', '/home',
     '/profil/:path*', '/profil',
-    '/api/v1/:path*',
+    '/api/v1/auth/logout',
   ],
 }
